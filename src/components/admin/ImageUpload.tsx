@@ -17,10 +17,53 @@ export function ImageUpload({ label, currentImage, onImageChange, circular }: Im
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validar tamanho (limite: 500KB para evitar quota exceeded)
+    const maxSizeKB = 500;
+    const fileSizeKB = file.size / 1024;
+    
+    if (fileSizeKB > maxSizeKB) {
+      alert(`Imagem muito grande (${fileSizeKB.toFixed(0)}KB). O limite é ${maxSizeKB}KB. Por favor, use uma imagem menor ou comprima-a antes de fazer upload.`);
+      e.target.value = ''; // Limpar input
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
-      onImageChange(result);
+      
+      // Criar uma imagem para redimensionar se necessário
+      const img = new Image();
+      img.onload = () => {
+        // Se a imagem for muito grande, redimensionar
+        const maxWidth = 800;
+        const maxHeight = 800;
+        
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = (height / width) * maxWidth;
+            width = maxWidth;
+          } else {
+            width = (width / height) * maxHeight;
+            height = maxHeight;
+          }
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Comprimir para JPEG com qualidade 0.8
+          const compressedData = canvas.toDataURL('image/jpeg', 0.8);
+          onImageChange(compressedData);
+        } else {
+          onImageChange(result);
+        }
+      };
+      img.src = result;
     };
     reader.readAsDataURL(file);
   };

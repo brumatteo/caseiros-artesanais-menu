@@ -1,5 +1,4 @@
 import { AppData, SiteSettings, Product, Extra, Tag } from '@/types';
-import heroImage from '@/assets/hero-cakes.jpg';
 
 const STORAGE_KEY = 'bolos-caseirinhos-data';
 
@@ -8,7 +7,6 @@ const defaultSettings: SiteSettings = {
   showLogo: false,
   showName: true,
   showHeroLogo: false,
-  heroImage: heroImage,
   heroOverlayColor: '#000000',
   heroOverlayOpacity: 0.45,
   heroTitle: 'Os bolos caseirinhos mais fofinhos e saborosos que você já provou.',
@@ -125,12 +123,24 @@ export function getStoredData(): AppData {
   };
 }
 
-export function saveData(data: AppData): void {
+export function saveData(data: AppData): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const jsonData = JSON.stringify(data);
+    const sizeInMB = new Blob([jsonData]).size / (1024 * 1024);
+    
+    if (sizeInMB > 4) {
+      console.warn(`Dados muito grandes: ${sizeInMB.toFixed(2)}MB. Considere usar imagens menores.`);
+    }
+    
+    localStorage.setItem(STORAGE_KEY, jsonData);
+    return true;
   } catch (error) {
     console.error('Erro ao salvar dados:', error);
-    throw new Error('Não foi possível salvar. Verifique o espaço de armazenamento.');
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      // Não lançar erro, apenas retornar false para não crashar a aplicação
+      return false;
+    }
+    return false;
   }
 }
 

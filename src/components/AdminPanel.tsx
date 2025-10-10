@@ -26,24 +26,35 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange }: AdminPanelPr
   const handleSave = () => {
     setIsSaving(true);
     try {
-      saveData(data);
+      const saved = saveData(data);
+      
+      if (!saved) {
+        toast({
+          title: "Erro ao salvar",
+          description: "Dados muito grandes. Reduza o tamanho das imagens (use imagens menores que 500KB).",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
+      
       toast({
         title: "Salvo com sucesso!",
         description: "Suas alterações foram salvas.",
       });
       
       const usage = checkStorageUsage();
-      if (usage.percentage > 80) {
+      if (usage.percentage > 70) {
         toast({
           title: "Atenção: Espaço de armazenamento",
-          description: `Você está usando ${usage.percentage.toFixed(0)}% do espaço disponível. Considere exportar um backup.`,
+          description: `Você está usando ${usage.percentage.toFixed(0)}% do espaço. Use imagens menores ou exporte um backup.`,
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Erro ao salvar",
-        description: error instanceof Error ? error.message : "Ocorreu um erro ao salvar.",
+        description: "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
     } finally {

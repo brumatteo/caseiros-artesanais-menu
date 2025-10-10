@@ -1,4 +1,5 @@
 import { SiteSettings } from '@/types';
+import heroImageDefault from '@/assets/hero-cakes.jpg';
 
 interface HeroProps {
   settings: SiteSettings;
@@ -10,18 +11,17 @@ export function Hero({ settings }: HeroProps) {
     opacity: settings.heroOverlayOpacity,
   };
 
+  // Usar imagem padrão se não houver imagem customizada
+  const backgroundImage = settings.heroImage || heroImageDefault;
+
   return (
     <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
       {/* Background Image */}
-      {settings.heroImage ? (
-        <img 
-          src={settings.heroImage} 
-          alt="Hero background" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      ) : (
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20" />
-      )}
+      <img 
+        src={backgroundImage} 
+        alt="Hero background" 
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       
       {/* Overlay */}
       <div 

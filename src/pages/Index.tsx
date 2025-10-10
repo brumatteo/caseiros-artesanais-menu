@@ -20,7 +20,14 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    saveData(data);
+    const saved = saveData(data);
+    if (!saved) {
+      toast({
+        title: "Aviso: Espaço de armazenamento",
+        description: "Os dados estão muito grandes para salvar. Reduza o tamanho das imagens ou exporte um backup.",
+        variant: "destructive",
+      });
+    }
   }, [data]);
 
   const handleLogin = (username: string, password: string): boolean => {
