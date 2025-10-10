@@ -1,4 +1,11 @@
 import { AppData, SiteSettings, Product, Extra, Tag } from '@/types';
+import boloChocolateImg from '@/assets/bolo-chocolate.jpg';
+import boloMescladoImg from '@/assets/bolo-mesclado.jpg';
+import boloBaunilhaImg from '@/assets/bolo-baunilha.jpg';
+import boloCenouraImg from '@/assets/bolo-cenoura.jpg';
+import coberturaBrigadeiroBrancoImg from '@/assets/cobertura-brigadeiro-branco.jpg';
+import coberturaBrigadeiroTradicionalImg from '@/assets/cobertura-brigadeiro-tradicional.jpg';
+import coberturaCocoImg from '@/assets/cobertura-coco.jpg';
 
 const STORAGE_KEY = 'bolos-caseirinhos-data';
 
@@ -12,6 +19,7 @@ const defaultSettings: SiteSettings = {
   heroTitle: 'Os bolos caseirinhos mais fofinhos e saborosos que você já provou.',
   heroSubtitle: 'Feitos com amor e ingredientes selecionados',
   whatsappNumber: '5511999999999',
+  whatsappMessage: 'Olá! Gostaria de confirmar meu pedido:',
   aboutTitle: 'Sobre Nós',
   aboutText: 'Cada bolo é feito com carinho e dedicação, utilizando apenas ingredientes frescos e de qualidade. Nossa paixão é transformar momentos especiais em memórias deliciosas.',
   showAbout: true,
@@ -35,6 +43,7 @@ const defaultProducts: Product[] = [
     id: '1',
     name: 'Bolo de Chocolate',
     description: 'Bolo fofinho de chocolate com cobertura cremosa',
+    image: boloChocolateImg,
     sizes: [
       { id: '1-p', name: 'Pequeno (15cm)', price: 35.00 },
       { id: '1-m', name: 'Médio (20cm)', price: 55.00 },
@@ -47,6 +56,7 @@ const defaultProducts: Product[] = [
     id: '2',
     name: 'Bolo Mesclado',
     description: 'Combinação perfeita de chocolate e baunilha',
+    image: boloMescladoImg,
     sizes: [
       { id: '2-p', name: 'Pequeno (15cm)', price: 38.00 },
       { id: '2-m', name: 'Médio (20cm)', price: 58.00 },
@@ -59,6 +69,7 @@ const defaultProducts: Product[] = [
     id: '3',
     name: 'Bolo de Baunilha',
     description: 'Clássico e delicioso bolo de baunilha',
+    image: boloBaunilhaImg,
     sizes: [
       { id: '3-p', name: 'Pequeno (15cm)', price: 32.00 },
       { id: '3-m', name: 'Médio (20cm)', price: 52.00 },
@@ -71,6 +82,7 @@ const defaultProducts: Product[] = [
     id: '4',
     name: 'Bolo de Cenoura',
     description: 'Bolo úmido de cenoura com cobertura de chocolate',
+    image: boloCenouraImg,
     sizes: [
       { id: '4-p', name: 'Pequeno (15cm)', price: 33.00 },
       { id: '4-m', name: 'Médio (20cm)', price: 53.00 },
@@ -87,6 +99,7 @@ const defaultExtras: Extra[] = [
     name: 'Cobertura de Brigadeiro Branco',
     description: 'Cobertura cremosa e deliciosa',
     price: 12.00,
+    image: coberturaBrigadeiroBrancoImg,
     order: 1,
   },
   {
@@ -94,6 +107,7 @@ const defaultExtras: Extra[] = [
     name: 'Cobertura de Brigadeiro Tradicional',
     description: 'O clássico brigadeiro que todos amam',
     price: 10.00,
+    image: coberturaBrigadeiroTradicionalImg,
     order: 2,
   },
   {
@@ -101,6 +115,7 @@ const defaultExtras: Extra[] = [
     name: 'Brigadeira de Coco',
     description: 'Cobertura especial com coco ralado',
     price: 13.00,
+    image: coberturaCocoImg,
     order: 3,
   },
 ];

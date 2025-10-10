@@ -17,9 +17,10 @@ interface AdminPanelProps {
   onClose: () => void;
   data: AppData;
   onDataChange: (data: AppData) => void;
+  onLogout: () => void;
 }
 
-export function AdminPanel({ isOpen, onClose, data, onDataChange }: AdminPanelProps) {
+export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -169,6 +170,10 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange }: AdminPanelPr
           <Button onClick={handleImport} variant="outline">
             <Upload className="h-4 w-4 mr-2" />
             Importar Backup
+          </Button>
+
+          <Button onClick={onLogout} variant="destructive">
+            Sair
           </Button>
         </div>
 
