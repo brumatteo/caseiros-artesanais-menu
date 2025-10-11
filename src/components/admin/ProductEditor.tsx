@@ -96,11 +96,16 @@ export function ProductEditor({ product, tags, onSave, onCancel }: ProductEditor
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
         </div>
 
-        <ImageUpload
-          label="Foto do Produto"
-          currentImage={image}
-          onImageChange={setImage}
-        />
+        <div>
+          <ImageUpload
+            label="Foto do Produto"
+            currentImage={image}
+            onImageChange={setImage}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            💡 Recomendado: imagens quadradas (1:1), resolução mínima 800x800px
+          </p>
+        </div>
 
         <div>
           <div className="flex justify-between items-center mb-2">

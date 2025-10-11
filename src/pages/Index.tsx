@@ -206,7 +206,8 @@ const Index = () => {
 
           return (
             <section 
-              key={section.id} 
+              key={section.id}
+              id={index === 0 ? 'nossos-bolos' : undefined}
               className={index % 2 === 0 ? "py-16 bg-background" : "py-16 bg-accent/20"}
             >
               <div className="container mx-auto px-4">

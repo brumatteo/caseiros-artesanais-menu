@@ -1,5 +1,6 @@
 import { SiteSettings } from '@/types';
 import heroImageDefault from '@/assets/hero-cakes.jpg';
+import { Button } from '@/components/ui/button';
 
 interface HeroProps {
   settings: SiteSettings;
@@ -50,6 +51,18 @@ export function Hero({ settings }: HeroProps) {
             {settings.heroSubtitle}
           </p>
         )}
+        
+        <Button 
+          onClick={() => {
+            const section = document.getElementById('nossos-bolos');
+            section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          size="lg"
+          className="mt-6 animate-fade-in"
+          style={{ animationDelay: '0.2s' }}
+        >
+          Ver cardápio
+        </Button>
       </div>
     </section>
   );

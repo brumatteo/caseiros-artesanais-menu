@@ -19,12 +19,12 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
   return (
     <div className="bg-card rounded-xl overflow-hidden shadow-soft hover-lift">
       {/* Image */}
-      <div className="relative h-56 bg-accent overflow-hidden">
+      <div className="relative h-56 bg-background overflow-hidden">
         {product.image ? (
           <img 
             src={product.image} 
             alt={product.name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-6xl">
