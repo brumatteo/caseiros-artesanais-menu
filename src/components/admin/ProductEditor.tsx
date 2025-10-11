@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Product, ProductSize, Tag } from '@/types';
 import { ImageUpload } from './ImageUpload';
 
@@ -18,6 +19,7 @@ export function ProductEditor({ product, tags, onSave, onCancel }: ProductEditor
   const [name, setName] = useState(product?.name || '');
   const [description, setDescription] = useState(product?.description || '');
   const [image, setImage] = useState(product?.image);
+  const [showImage, setShowImage] = useState(product?.showImage !== false);
   const [sizes, setSizes] = useState<ProductSize[]>(
     product?.sizes || [{ id: '1', name: 'Médio', price: 50 }]
   );
@@ -66,6 +68,7 @@ export function ProductEditor({ product, tags, onSave, onCancel }: ProductEditor
       name: name.trim(),
       description: description.trim(),
       image,
+      showImage,
       sizes,
       tags: selectedTags,
       order: product?.order || Date.now(),
@@ -102,8 +105,18 @@ export function ProductEditor({ product, tags, onSave, onCancel }: ProductEditor
             currentImage={image}
             onImageChange={setImage}
           />
+          <div className="flex items-center gap-2 mt-2">
+            <Switch
+              id="show-image"
+              checked={showImage}
+              onCheckedChange={setShowImage}
+            />
+            <Label htmlFor="show-image" className="text-sm cursor-pointer">
+              Ativar imagem deste produto
+            </Label>
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
-            💡 Recomendado: imagens quadradas (1:1), resolução mínima 800x800px
+            💡 Recomendado: imagens horizontais ou levemente verticais (proporção aproximada 1:1.2), resolução mínima 800x800px
           </p>
         </div>
 

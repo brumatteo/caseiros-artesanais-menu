@@ -8,22 +8,20 @@ interface ExtraCardProps {
 }
 
 export function ExtraCard({ extra, onAddToCart }: ExtraCardProps) {
+  const shouldShowImage = extra.showImage !== false && extra.image;
+
   return (
     <div className="bg-card rounded-xl overflow-hidden shadow-soft hover-lift">
       {/* Image */}
-      <div className="relative h-40 bg-accent overflow-hidden">
-        {extra.image ? (
+      {shouldShowImage && (
+        <div className="relative bg-background overflow-hidden" style={{ aspectRatio: '1 / 1.2' }}>
           <img 
             src={extra.image} 
             alt={extra.name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-5xl">
-            🍫
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-4">

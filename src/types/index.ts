@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   description: string;
   image?: string;
+  showImage?: boolean;
   sizes: ProductSize[];
   tags: string[];
   order: number;
@@ -28,6 +29,7 @@ export interface Extra {
   description: string;
   price: number;
   image?: string;
+  showImage?: boolean;
   order: number;
 }
 

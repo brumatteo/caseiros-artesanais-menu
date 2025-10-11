@@ -16,38 +16,36 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
   const selectedSize = product.sizes.find(s => s.id === selectedSizeId) || product.sizes[0];
   const productTags = tags.filter(tag => product.tags.includes(tag.id));
 
+  const shouldShowImage = product.showImage !== false && product.image;
+
   return (
     <div className="bg-card rounded-xl overflow-hidden shadow-soft hover-lift">
       {/* Image */}
-      <div className="relative h-56 bg-background overflow-hidden">
-        {product.image ? (
+      {shouldShowImage && (
+        <div className="relative bg-background overflow-hidden" style={{ aspectRatio: '1 / 1.2' }}>
           <img 
             src={product.image} 
             alt={product.name} 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-cover object-center"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-6xl">
-            🍰
-          </div>
-        )}
-        
-        {/* Tags */}
-        {productTags.length > 0 && (
-          <div className="absolute top-3 right-3 flex flex-col gap-2">
-            {productTags.map(tag => (
-              <span 
-                key={tag.id}
-                className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-md"
-                style={{ backgroundColor: tag.color }}
-              >
-                {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
-                {tag.name}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
+          
+          {/* Tags */}
+          {productTags.length > 0 && (
+            <div className="absolute top-3 right-3 flex flex-col gap-2">
+              {productTags.map(tag => (
+                <span 
+                  key={tag.id}
+                  className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-md"
+                  style={{ backgroundColor: tag.color }}
+                >
+                  {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-5">

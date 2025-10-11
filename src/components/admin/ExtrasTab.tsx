@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { AppData, Extra } from '@/types';
 import { ImageUpload } from './ImageUpload';
 
@@ -20,6 +21,7 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState<string>();
+  const [showImage, setShowImage] = useState(true);
 
   const sortedExtras = [...data.extras].sort((a, b) => a.order - b.order);
 
@@ -28,6 +30,7 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
     setDescription('');
     setPrice(0);
     setImage(undefined);
+    setShowImage(true);
     setEditingExtra(null);
     setIsCreating(false);
   };
@@ -38,6 +41,7 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
     setDescription(extra.description);
     setPrice(extra.price);
     setImage(extra.image);
+    setShowImage(extra.showImage !== false);
     setIsCreating(false);
   };
 
@@ -58,6 +62,7 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
       description: description.trim(),
       price,
       image,
+      showImage,
       order: editingExtra?.order || Date.now(),
     };
 
@@ -122,11 +127,26 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
             />
           </div>
 
-          <ImageUpload
-            label="Foto"
-            currentImage={image}
-            onImageChange={setImage}
-          />
+          <div>
+            <ImageUpload
+              label="Foto"
+              currentImage={image}
+              onImageChange={setImage}
+            />
+            <div className="flex items-center gap-2 mt-2">
+              <Switch
+                id="show-extra-image"
+                checked={showImage}
+                onCheckedChange={setShowImage}
+              />
+              <Label htmlFor="show-extra-image" className="text-sm cursor-pointer">
+                Ativar imagem desta cobertura/extra
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              💡 Recomendado: imagens horizontais ou levemente verticais (proporção aproximada 1:1.2), resolução mínima 800x800px
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
