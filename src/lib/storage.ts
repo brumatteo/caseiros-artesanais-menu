@@ -20,7 +20,7 @@ const defaultSettings: SiteSettings = {
   heroOverlayColor: '#000000',
   heroOverlayOpacity: 0.45,
   heroTitle: 'Bolos Caseiros Artesanais',
-  heroSubtitle: 'Do Nosso Forno para Sua Mesa',
+  heroSubtitle: 'Do nosso forno, para sua mesa.',
   whatsappNumber: '5511999999999',
   whatsappMessage: 'Olá! Gostaria de confirmar meu pedido:',
   aboutTitle: 'Sobre Nós',

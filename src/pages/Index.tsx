@@ -11,6 +11,7 @@ import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { getStoredData, saveData } from '@/lib/storage';
 import { AppData, CartItem } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 const Index = () => {
   const [data, setData] = useState<AppData>(getStoredData());
@@ -19,6 +20,9 @@ const Index = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Apply theme colors dynamically
+  useThemeColors(data.settings);
 
   useEffect(() => {
     const saved = saveData(data);

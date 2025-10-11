@@ -20,7 +20,7 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
       <div>
         <h3 className="text-lg font-semibold mb-4">Cores do Site</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Personalize as cores do seu site. Use códigos hexadecimais (#) para definir cada cor.
+          Personalize as cores do seu site. As alterações são aplicadas em tempo real.
         </p>
         
         <div className="space-y-4">
@@ -31,7 +31,7 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
                 type="color"
                 value={data.settings.colorPrimary || '#E88D95'}
                 onChange={(e) => updateSettings({ colorPrimary: e.target.value })}
-                className="w-20 h-10"
+                className="w-20 h-10 cursor-pointer"
               />
               <Input
                 type="text"
@@ -50,7 +50,7 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
                 type="color"
                 value={data.settings.colorSecondary || '#9DC4A8'}
                 onChange={(e) => updateSettings({ colorSecondary: e.target.value })}
-                className="w-20 h-10"
+                className="w-20 h-10 cursor-pointer"
               />
               <Input
                 type="text"
@@ -69,7 +69,7 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
                 type="color"
                 value={data.settings.colorAccent || '#E8C89D'}
                 onChange={(e) => updateSettings({ colorAccent: e.target.value })}
-                className="w-20 h-10"
+                className="w-20 h-10 cursor-pointer"
               />
               <Input
                 type="text"
@@ -86,15 +86,15 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
             <div className="flex items-center gap-3">
               <Input
                 type="color"
-                value={data.settings.colorBackground || '#FFFFFF'}
+                value={data.settings.colorBackground || '#F5F1ED'}
                 onChange={(e) => updateSettings({ colorBackground: e.target.value })}
-                className="w-20 h-10"
+                className="w-20 h-10 cursor-pointer"
               />
               <Input
                 type="text"
-                value={data.settings.colorBackground || '#FFFFFF'}
+                value={data.settings.colorBackground || '#F5F1ED'}
                 onChange={(e) => updateSettings({ colorBackground: e.target.value })}
-                placeholder="#FFFFFF"
+                placeholder="#F5F1ED"
                 className="flex-1"
               />
             </div>
@@ -105,15 +105,15 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
             <div className="flex items-center gap-3">
               <Input
                 type="color"
-                value={data.settings.colorForeground || '#1A1A1A'}
+                value={data.settings.colorForeground || '#3D2E27'}
                 onChange={(e) => updateSettings({ colorForeground: e.target.value })}
-                className="w-20 h-10"
+                className="w-20 h-10 cursor-pointer"
               />
               <Input
                 type="text"
-                value={data.settings.colorForeground || '#1A1A1A'}
+                value={data.settings.colorForeground || '#3D2E27'}
                 onChange={(e) => updateSettings({ colorForeground: e.target.value })}
-                placeholder="#1A1A1A"
+                placeholder="#3D2E27"
                 className="flex-1"
               />
             </div>
@@ -124,8 +124,8 @@ export function ThemeTab({ data, onDataChange }: ThemeTabProps) {
       <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
         <p className="font-semibold mb-2">💡 Dica:</p>
         <p>
-          As cores serão aplicadas automaticamente em todo o site. 
-          Experimente diferentes combinações para criar a identidade visual perfeita para seu negócio.
+          As cores são aplicadas automaticamente em todo o site em tempo real. 
+          Experimente diferentes combinações para criar a identidade visual perfeita!
         </p>
       </div>
     </div>
