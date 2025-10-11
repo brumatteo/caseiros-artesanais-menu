@@ -1,35 +1,61 @@
 import { useState } from 'react';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { AppData, Product } from '@/types';
 import { ProductEditor } from './ProductEditor';
 
 interface ProductsTabProps {
   data: AppData;
   onDataChange: (data: AppData) => void;
+  sectionId?: string;
 }
 
-export function ProductsTab({ data, onDataChange }: ProductsTabProps) {
+export function ProductsTab({ data, onDataChange, sectionId }: ProductsTabProps) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string>(
+    sectionId || data.sections[0]?.id || ''
+  );
 
-  const sortedProducts = [...data.products].sort((a, b) => a.order - b.order);
+  const currentSection = data.sections.find(s => s.id === selectedSection);
+  const sectionProducts = currentSection 
+    ? data.products.filter(p => currentSection.productIds.includes(p.id))
+    : [];
+  const sortedProducts = [...sectionProducts].sort((a, b) => a.order - b.order);
 
   const handleSaveProduct = (product: Product) => {
-    const updatedProducts = editingProduct
-      ? data.products.map(p => p.id === product.id ? product : p)
-      : [...data.products, product];
+    let updatedProducts: Product[];
+    let updatedSections = [...data.sections];
+
+    if (editingProduct) {
+      updatedProducts = data.products.map(p => p.id === product.id ? product : p);
+    } else {
+      updatedProducts = [...data.products, product];
+      // Add new product to current section
+      updatedSections = data.sections.map(s => 
+        s.id === selectedSection 
+          ? { ...s, productIds: [...s.productIds, product.id] }
+          : s
+      );
+    }
     
-    onDataChange({ ...data, products: updatedProducts });
+    onDataChange({ ...data, products: updatedProducts, sections: updatedSections });
     setEditingProduct(null);
     setIsCreating(false);
   };
 
   const handleDeleteProduct = (id: string) => {
     if (confirm('Tem certeza que deseja remover este produto?')) {
+      const updatedSections = data.sections.map(s => ({
+        ...s,
+        productIds: s.productIds.filter(pid => pid !== id)
+      }));
+      
       onDataChange({
         ...data,
-        products: data.products.filter(p => p.id !== id)
+        products: data.products.filter(p => p.id !== id),
+        sections: updatedSections
       });
     }
   };
@@ -66,10 +92,25 @@ export function ProductsTab({ data, onDataChange }: ProductsTabProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Produtos do Cardápio</h3>
-        <Button onClick={() => setIsCreating(true)}>
+        <Button onClick={() => setIsCreating(true)} disabled={!selectedSection}>
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Produto
         </Button>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Seção</Label>
+        <select
+          value={selectedSection}
+          onChange={(e) => setSelectedSection(e.target.value)}
+          className="w-full p-2 border rounded-md bg-background"
+        >
+          {data.sections.sort((a, b) => a.order - b.order).map(section => (
+            <option key={section.id} value={section.id}>
+              {section.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="space-y-3">

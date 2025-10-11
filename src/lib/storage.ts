@@ -1,9 +1,11 @@
-import { AppData, SiteSettings, Product, Extra, Tag } from '@/types';
+import { AppData, SiteSettings, Product, Extra, Tag, ProductSection } from '@/types';
 import heroCakesImg from '@/assets/hero-cakes.jpg';
 import boloChocolateImg from '@/assets/bolo-chocolate.jpg';
 import boloMescladoImg from '@/assets/bolo-mesclado.jpg';
 import boloBaunilhaImg from '@/assets/bolo-baunilha.jpg';
 import boloCenouraImg from '@/assets/bolo-cenoura.jpg';
+import boloRedVelvetImg from '@/assets/bolo-red-velvet.jpg';
+import boloLimaoImg from '@/assets/bolo-limao.jpg';
 import coberturaWhiteImg from '@/assets/cobertura-brigadeiro-branco.jpg';
 import coberturaTradicionalImg from '@/assets/cobertura-brigadeiro-tradicional.jpg';
 import coberturaCocoImg from '@/assets/cobertura-coco.jpg';
@@ -95,6 +97,49 @@ const defaultProducts: Product[] = [
     tags: ['3'],
     order: 4,
   },
+  {
+    id: '5',
+    name: 'Bolo Red Velvet',
+    description: 'Bolo aveludado com cobertura de cream cheese',
+    image: boloRedVelvetImg,
+    sizes: [
+      { id: '5-p', name: 'Pequeno (15cm)', price: 45.00 },
+      { id: '5-m', name: 'Médio (20cm)', price: 65.00 },
+      { id: '5-g', name: 'Grande (25cm)', price: 85.00 },
+    ],
+    tags: ['1'],
+    order: 5,
+  },
+  {
+    id: '6',
+    name: 'Bolo de Limão',
+    description: 'Refrescante bolo de limão com cobertura branca',
+    image: boloLimaoImg,
+    sizes: [
+      { id: '6-p', name: 'Pequeno (15cm)', price: 40.00 },
+      { id: '6-m', name: 'Médio (20cm)', price: 60.00 },
+      { id: '6-g', name: 'Grande (25cm)', price: 80.00 },
+    ],
+    tags: ['3'],
+    order: 6,
+  },
+];
+
+const defaultSections: ProductSection[] = [
+  {
+    id: 'section-1',
+    name: 'Nossos Bolos',
+    visible: true,
+    order: 1,
+    productIds: ['1', '2', '3', '4'],
+  },
+  {
+    id: 'section-2',
+    name: 'Bolos Especiais',
+    visible: true,
+    order: 2,
+    productIds: ['5', '6'],
+  },
 ];
 
 const defaultExtras: Extra[] = [
@@ -137,6 +182,7 @@ export function getStoredData(): AppData {
   return {
     settings: defaultSettings,
     products: defaultProducts,
+    sections: defaultSections,
     extras: defaultExtras,
     tags: defaultTags,
   };

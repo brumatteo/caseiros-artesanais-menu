@@ -11,6 +11,7 @@ import { ProductsTab } from './admin/ProductsTab';
 import { ExtrasTab } from './admin/ExtrasTab';
 import { InfoTab } from './admin/InfoTab';
 import { ThemeTab } from './admin/ThemeTab';
+import { SectionsTab } from './admin/SectionsTab';
 import { SettingsTab } from './admin/SettingsTab';
 
 interface AdminPanelProps {
@@ -125,9 +126,10 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="theme">Cores</TabsTrigger>
+            <TabsTrigger value="sections">Seções</TabsTrigger>
             <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="extras">Coberturas</TabsTrigger>
             <TabsTrigger value="info">Info</TabsTrigger>
@@ -141,6 +143,10 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
 
             <TabsContent value="theme">
               <ThemeTab data={data} onDataChange={onDataChange} />
+            </TabsContent>
+
+            <TabsContent value="sections">
+              <SectionsTab data={data} onDataChange={onDataChange} />
             </TabsContent>
 
             <TabsContent value="products">

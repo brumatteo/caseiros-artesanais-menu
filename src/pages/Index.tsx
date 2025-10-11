@@ -178,7 +178,9 @@ const Index = () => {
     });
   };
 
-  const sortedProducts = [...data.products].sort((a, b) => a.order - b.order);
+  const sortedSections = [...data.sections]
+    .filter(s => s.visible)
+    .sort((a, b) => a.order - b.order);
   const sortedExtras = [...data.extras].sort((a, b) => a.order - b.order);
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -194,24 +196,37 @@ const Index = () => {
       <main className="flex-1">
         <Hero settings={data.settings} />
 
-        {/* Products Section */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl md:text-4xl font-display font-semibold text-center mb-12">
-              Nossos Bolos
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  tags={data.tags}
-                  onAddToCart={addToCart}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Product Sections */}
+        {sortedSections.map((section, index) => {
+          const sectionProducts = data.products
+            .filter(p => section.productIds.includes(p.id))
+            .sort((a, b) => a.order - b.order);
+
+          if (sectionProducts.length === 0) return null;
+
+          return (
+            <section 
+              key={section.id} 
+              className={index % 2 === 0 ? "py-16 bg-background" : "py-16 bg-accent/20"}
+            >
+              <div className="container mx-auto px-4">
+                <h2 className="text-3xl md:text-4xl font-display font-semibold text-center mb-12">
+                  {section.name}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {sectionProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      tags={data.tags}
+                      onAddToCart={addToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })}
 
         {/* Extras Section */}
         {sortedExtras.length > 0 && (

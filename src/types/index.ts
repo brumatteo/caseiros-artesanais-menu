@@ -8,6 +8,14 @@ export interface Product {
   order: number;
 }
 
+export interface ProductSection {
+  id: string;
+  name: string;
+  visible: boolean;
+  order: number;
+  productIds: string[];
+}
+
 export interface ProductSize {
   id: string;
   name: string;
@@ -78,6 +86,7 @@ export interface SiteSettings {
 export interface AppData {
   settings: SiteSettings;
   products: Product[];
+  sections: ProductSection[];
   extras: Extra[];
   tags: Tag[];
 }
