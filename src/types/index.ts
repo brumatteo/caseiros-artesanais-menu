@@ -53,7 +53,6 @@ export interface SiteSettings {
   heroTitle: string;
   heroSubtitle: string;
   whatsappNumber: string;
-  whatsappMessage: string;
   aboutTitle: string;
   aboutText: string;
   aboutImage?: string;
