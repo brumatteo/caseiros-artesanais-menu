@@ -48,6 +48,7 @@ export interface SiteSettings {
   heroLogoImage?: string;
   showHeroLogo: boolean;
   heroImage?: string;
+  heroImagePosition?: string;
   heroOverlayColor: string;
   heroOverlayOpacity: number;
   heroTitle: string;
@@ -58,11 +59,20 @@ export interface SiteSettings {
   aboutText: string;
   aboutImage?: string;
   showAbout: boolean;
+  extraInfoTitle: string;
   extraInfoText: string;
   showExtraInfo: boolean;
   footerText: string;
+  footerAddress?: string;
+  footerPhone?: string;
   instagramUrl?: string;
   adminPassword: string;
+  // Theme colors
+  colorPrimary?: string;
+  colorSecondary?: string;
+  colorAccent?: string;
+  colorBackground?: string;
+  colorForeground?: string;
 }
 
 export interface AppData {

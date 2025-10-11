@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';
 import { AdminPanel } from '@/components/AdminPanel';
 import { LoginModal } from '@/components/LoginModal';
+import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { getStoredData, saveData } from '@/lib/storage';
 import { AppData, CartItem } from '@/types';
 import { toast } from '@/hooks/use-toast';
@@ -232,6 +233,9 @@ const Index = () => {
         {data.settings.showExtraInfo && data.settings.extraInfoText && (
           <section className="py-12 bg-card">
             <div className="container mx-auto px-4 max-w-3xl">
+              <h2 className="text-2xl md:text-3xl font-display font-semibold text-center mb-6">
+                {data.settings.extraInfoTitle || 'Informações Adicionais'}
+              </h2>
               <div className="bg-secondary/10 border border-secondary rounded-xl p-6">
                 <pre className="whitespace-pre-wrap font-sans text-foreground">
                   {data.settings.extraInfoText}
@@ -268,6 +272,11 @@ const Index = () => {
       </main>
 
       <Footer settings={data.settings} />
+
+      <FloatingWhatsAppButton 
+        onClick={() => setIsCartOpen(true)}
+        itemCount={cartItemCount}
+      />
 
       <CartModal
         isOpen={isCartOpen}

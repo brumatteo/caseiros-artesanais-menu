@@ -10,6 +10,7 @@ import { BrandingTab } from './admin/BrandingTab';
 import { ProductsTab } from './admin/ProductsTab';
 import { ExtrasTab } from './admin/ExtrasTab';
 import { InfoTab } from './admin/InfoTab';
+import { ThemeTab } from './admin/ThemeTab';
 import { SettingsTab } from './admin/SettingsTab';
 
 interface AdminPanelProps {
@@ -124,17 +125,22 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 w-full">
-            <TabsTrigger value="branding">Marca & Banner</TabsTrigger>
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="branding">Marca</TabsTrigger>
+            <TabsTrigger value="theme">Cores</TabsTrigger>
             <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="extras">Coberturas</TabsTrigger>
-            <TabsTrigger value="info">Informações</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
+            <TabsTrigger value="info">Info</TabsTrigger>
+            <TabsTrigger value="settings">Config</TabsTrigger>
           </TabsList>
 
           <div className="mt-6">
             <TabsContent value="branding">
               <BrandingTab data={data} onDataChange={onDataChange} />
+            </TabsContent>
+
+            <TabsContent value="theme">
+              <ThemeTab data={data} onDataChange={onDataChange} />
             </TabsContent>
 
             <TabsContent value="products">

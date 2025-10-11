@@ -88,6 +88,28 @@ export function BrandingTab({ data, onDataChange }: BrandingTabProps) {
             />
           </div>
 
+          <div>
+            <Label>Posição da Imagem</Label>
+            <select
+              value={data.settings.heroImagePosition || 'center'}
+              onChange={(e) => updateSettings({ heroImagePosition: e.target.value })}
+              className="w-full h-10 px-3 rounded-md border border-input bg-background"
+            >
+              <option value="center">Centro</option>
+              <option value="top">Topo</option>
+              <option value="bottom">Base</option>
+              <option value="left">Esquerda</option>
+              <option value="right">Direita</option>
+              <option value="top left">Topo Esquerda</option>
+              <option value="top right">Topo Direita</option>
+              <option value="bottom left">Base Esquerda</option>
+              <option value="bottom right">Base Direita</option>
+            </select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Ajuste o enquadramento da imagem de fundo
+            </p>
+          </div>
+
           <div className="flex items-center justify-between">
             <Label>Mostrar logo no banner</Label>
             <Switch

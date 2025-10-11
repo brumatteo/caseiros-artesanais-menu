@@ -13,6 +13,7 @@ export function Hero({ settings }: HeroProps) {
 
   // Usar imagem padrão se não houver imagem customizada
   const backgroundImage = settings.heroImage || heroImageDefault;
+  const objectPosition = settings.heroImagePosition || 'center';
 
   return (
     <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
@@ -21,6 +22,7 @@ export function Hero({ settings }: HeroProps) {
         src={backgroundImage} 
         alt="Hero background" 
         className="absolute inset-0 w-full h-full object-cover"
+        style={{ objectPosition }}
       />
       
       {/* Overlay */}

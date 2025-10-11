@@ -62,11 +62,11 @@ export function InfoTab({ data, onDataChange }: InfoTabProps) {
       </div>
 
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold mb-4">Informações Extras</h3>
+        <h3 className="text-lg font-semibold mb-4">Informações Adicionais</h3>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Mostrar informações extras</Label>
+            <Label>Mostrar informações adicionais</Label>
             <Switch
               checked={data.settings.showExtraInfo}
               onCheckedChange={(checked) => updateSettings({ showExtraInfo: checked })}
@@ -74,15 +74,25 @@ export function InfoTab({ data, onDataChange }: InfoTabProps) {
           </div>
 
           {data.settings.showExtraInfo && (
-            <div>
-              <Label>Texto (políticas, retirada, entrega, etc.)</Label>
-              <Textarea
-                value={data.settings.extraInfoText}
-                onChange={(e) => updateSettings({ extraInfoText: e.target.value })}
-                rows={5}
-                placeholder="• Retirada no local ou entrega (consulte taxa)&#10;• Prazo mínimo: 48h de antecedência"
-              />
-            </div>
+            <>
+              <div>
+                <Label>Título da Seção</Label>
+                <Input
+                  value={data.settings.extraInfoTitle || 'Informações Adicionais'}
+                  onChange={(e) => updateSettings({ extraInfoTitle: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <Label>Texto (políticas, retirada, entrega, etc.)</Label>
+                <Textarea
+                  value={data.settings.extraInfoText}
+                  onChange={(e) => updateSettings({ extraInfoText: e.target.value })}
+                  rows={5}
+                  placeholder="• Retirada no local ou entrega (consulte taxa)&#10;• Prazo mínimo: 48h de antecedência"
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -96,6 +106,24 @@ export function InfoTab({ data, onDataChange }: InfoTabProps) {
             <Input
               value={data.settings.footerText}
               onChange={(e) => updateSettings({ footerText: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label>Endereço (opcional)</Label>
+            <Input
+              value={data.settings.footerAddress || ''}
+              onChange={(e) => updateSettings({ footerAddress: e.target.value })}
+              placeholder="Rua Exemplo, 123 - Bairro - Cidade/UF"
+            />
+          </div>
+
+          <div>
+            <Label>Telefone / WhatsApp (opcional)</Label>
+            <Input
+              value={data.settings.footerPhone || ''}
+              onChange={(e) => updateSettings({ footerPhone: e.target.value })}
+              placeholder="(11) 99999-9999"
             />
           </div>
 
