@@ -13,7 +13,6 @@ import { InfoTab } from './admin/InfoTab';
 import { ThemeTab } from './admin/ThemeTab';
 import { SectionsTab } from './admin/SectionsTab';
 import { SettingsTab } from './admin/SettingsTab';
-
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,53 +20,51 @@ interface AdminPanelProps {
   onDataChange: (data: AppData) => void;
   onLogout: () => void;
 }
-
-export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: AdminPanelProps) {
+export function AdminPanel({
+  isOpen,
+  onClose,
+  data,
+  onDataChange,
+  onLogout
+}: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
-
   const handleSave = () => {
     setIsSaving(true);
     try {
       const saved = saveData(data);
-      
       if (!saved) {
         toast({
           title: "Erro ao salvar",
           description: "Dados muito grandes. Reduza o tamanho das imagens (use imagens menores que 500KB).",
-          variant: "destructive",
+          variant: "destructive"
         });
         setIsSaving(false);
         return;
       }
-      
       toast({
         title: "Salvo com sucesso!",
-        description: "Suas alterações foram salvas.",
+        description: "Suas alterações foram salvas."
       });
-      
       const usage = checkStorageUsage();
       if (usage.percentage > 70) {
         toast({
           title: "Atenção: Espaço de armazenamento",
           description: `Você está usando ${usage.percentage.toFixed(0)}% do espaço. Use imagens menores ou exporte um backup.`,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error) {
       toast({
         title: "Erro ao salvar",
         description: "Ocorreu um erro inesperado.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSaving(false);
     }
   };
-
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-display">Painel Administrativo</DialogTitle>
@@ -128,13 +125,7 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
           </Button>
         </div>
 
-        <div className="bg-muted/50 rounded-lg p-3 flex items-start gap-2 text-sm">
-          <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <p className="text-muted-foreground">
-            As alterações são salvas no navegador. Recomendamos exportar backups regularmente.
-          </p>
-        </div>
+        
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
