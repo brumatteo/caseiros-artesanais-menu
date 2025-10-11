@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { AppData } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -55,16 +56,31 @@ export function SettingsTab({ data, onDataChange }: SettingsTabProps) {
       <div>
         <h3 className="text-lg font-semibold mb-4">Contato</h3>
         
-        <div>
-          <Label>Número do WhatsApp (com código do país)</Label>
-          <Input
-            value={data.settings.whatsappNumber}
-            onChange={(e) => updateSettings({ whatsappNumber: e.target.value })}
-            placeholder="5511999999999"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Formato: código do país + DDD + número (ex: 5511999999999)
-          </p>
+        <div className="space-y-4">
+          <div>
+            <Label>Número do WhatsApp (com código do país)</Label>
+            <Input
+              value={data.settings.whatsappNumber}
+              onChange={(e) => updateSettings({ whatsappNumber: e.target.value })}
+              placeholder="5511999999999"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Formato: código do país + DDD + número (ex: 5511999999999)
+            </p>
+          </div>
+
+          <div>
+            <Label>Mensagem de Pedido (WhatsApp)</Label>
+            <Textarea
+              value={data.settings.whatsappMessage}
+              onChange={(e) => updateSettings({ whatsappMessage: e.target.value })}
+              placeholder="Olá! Gostaria de confirmar meu pedido:"
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Esta será a primeira linha da mensagem enviada ao WhatsApp
+            </p>
+          </div>
         </div>
       </div>
 

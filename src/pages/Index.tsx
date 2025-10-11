@@ -39,6 +39,15 @@ const Index = () => {
     return false;
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIsAdminOpen(false);
+    toast({
+      title: "Sessão encerrada",
+      description: "Você saiu do painel administrativo.",
+    });
+  };
+
   const handleSettingsClick = () => {
     if (isAuthenticated) {
       setIsAdminOpen(true);
@@ -133,7 +142,7 @@ const Index = () => {
 
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    let whatsappMessage = `*Novo Pedido*\n\n*Nome:* ${customerName}\n*Telefone:* ${customerPhone}\n\n*Itens:*\n${items}\n\n*Total Aproximado:* R$ ${total.toFixed(2)}`;
+    let whatsappMessage = `${data.settings.whatsappMessage}\n\n*Nome:* ${customerName}\n*Telefone:* ${customerPhone}\n\n*Itens:*\n${items}\n\n*Total Aproximado:* R$ ${total.toFixed(2)}`;
 
     if (message.trim()) {
       whatsappMessage += `\n\n*Observações:*\n${message}`;
@@ -280,6 +289,7 @@ const Index = () => {
         onClose={() => setIsAdminOpen(false)}
         data={data}
         onDataChange={setData}
+        onLogout={handleLogout}
       />
     </div>
   );

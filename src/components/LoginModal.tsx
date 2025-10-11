@@ -42,7 +42,7 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
             Acesso Restrito
           </DialogTitle>
           <DialogDescription className="text-center">
-            Área exclusiva do administrador
+            ⚠️ Acesso restrito — apenas o administrador pode entrar nesta área.
           </DialogDescription>
         </DialogHeader>
 
@@ -77,10 +77,6 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
             Entrar
           </Button>
         </form>
-
-        <p className="text-xs text-center text-muted-foreground mt-4">
-          Credenciais padrão: <strong>admin</strong> / <strong>admin123</strong>
-        </p>
       </DialogContent>
     </Dialog>
   );
