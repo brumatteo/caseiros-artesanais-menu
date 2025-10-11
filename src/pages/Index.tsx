@@ -178,7 +178,7 @@ const Index = () => {
     });
   };
 
-  const sortedSections = [...data.sections]
+  const sortedSections = (data.sections || [])
     .filter(s => s.visible)
     .sort((a, b) => a.order - b.order);
   const sortedExtras = [...data.extras].sort((a, b) => a.order - b.order);

@@ -173,7 +173,23 @@ export function getStoredData(): AppData {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const data = JSON.parse(stored);
+      
+      // Migration: Add sections if they don't exist (old data format)
+      if (!data.sections || !Array.isArray(data.sections)) {
+        const allProductIds = data.products?.map((p: Product) => p.id) || [];
+        data.sections = [
+          {
+            id: 'section-1',
+            name: 'Nossos Bolos',
+            visible: true,
+            order: 1,
+            productIds: allProductIds,
+          }
+        ];
+      }
+      
+      return data;
     }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
