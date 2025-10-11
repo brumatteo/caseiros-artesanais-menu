@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { X, Save, Download, Upload, AlertCircle } from 'lucide-react';
+import { X, Save, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppData } from '@/types';
-import { exportData, importData, saveData, checkStorageUsage } from '@/lib/storage';
+import { saveData, checkStorageUsage } from '@/lib/storage';
 import { toast } from '@/hooks/use-toast';
 import { BrandingTab } from './admin/BrandingTab';
 import { ProductsTab } from './admin/ProductsTab';
@@ -65,58 +65,6 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
     }
   };
 
-  const handleExport = () => {
-    try {
-      const jsonData = exportData();
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup-bolos-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Backup exportado!",
-        description: "Seu backup foi baixado com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível exportar o backup.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        const text = await file.text();
-        importData(text);
-        const newData = JSON.parse(text);
-        onDataChange(newData);
-        
-        toast({
-          title: "Backup importado!",
-          description: "Seus dados foram restaurados com sucesso.",
-        });
-      } catch (error) {
-        toast({
-          title: "Erro ao importar",
-          description: "Arquivo inválido. Verifique o formato.",
-          variant: "destructive",
-        });
-      }
-    };
-    input.click();
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -172,16 +120,6 @@ export function AdminPanel({ isOpen, onClose, data, onDataChange, onLogout }: Ad
           <Button onClick={handleSave} disabled={isSaving} className="flex-1 min-w-[150px]">
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-          
-          <Button onClick={handleExport} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar Backup
-          </Button>
-          
-          <Button onClick={handleImport} variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Importar Backup
           </Button>
 
           <Button onClick={onLogout} variant="destructive">
