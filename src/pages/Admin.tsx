@@ -45,8 +45,10 @@ const Admin = () => {
   };
 
   const handleCloseLogin = () => {
+    if (!isAuthenticated) {
+      navigate('/');
+    }
     setIsLoginOpen(false);
-    navigate('/');
   };
 
   const handleCloseAdmin = () => {
