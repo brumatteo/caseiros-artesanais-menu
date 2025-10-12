@@ -5,8 +5,6 @@ import { ProductCard } from '@/components/ProductCard';
 import { ExtraCard } from '@/components/ExtraCard';
 import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';
-import { AdminPanel } from '@/components/AdminPanel';
-import { LoginModal } from '@/components/LoginModal';
 import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { getStoredData, saveData } from '@/lib/storage';
 import { AppData, CartItem } from '@/types';
@@ -17,9 +15,6 @@ const Index = () => {
   const [data, setData] = useState<AppData>(getStoredData());
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Apply theme colors dynamically
   useThemeColors(data.settings);
@@ -35,31 +30,6 @@ const Index = () => {
     }
   }, [data]);
 
-  const handleLogin = (username: string, password: string): boolean => {
-    if (username === 'admin' && password === data.settings.adminPassword) {
-      setIsAuthenticated(true);
-      setIsAdminOpen(true);
-      return true;
-    }
-    return false;
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setIsAdminOpen(false);
-    toast({
-      title: "Sessão encerrada",
-      description: "Você saiu do painel administrativo.",
-    });
-  };
-
-  const handleSettingsClick = () => {
-    if (isAuthenticated) {
-      setIsAdminOpen(true);
-    } else {
-      setIsLoginOpen(true);
-    }
-  };
 
   const addToCart = (productId: string, sizeId: string) => {
     const product = data.products.find(p => p.id === productId);
@@ -189,7 +159,6 @@ const Index = () => {
       <Navbar
         settings={data.settings}
         cartItemCount={cartItemCount}
-        onSettingsClick={handleSettingsClick}
         onCartClick={() => setIsCartOpen(true)}
       />
 
@@ -305,20 +274,6 @@ const Index = () => {
         onUpdateQuantity={updateCartQuantity}
         onRemoveItem={removeCartItem}
         onCheckout={handleCheckout}
-      />
-
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLogin={handleLogin}
-      />
-
-      <AdminPanel
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        data={data}
-        onDataChange={setData}
-        onLogout={handleLogout}
       />
     </div>
   );

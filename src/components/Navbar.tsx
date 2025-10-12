@@ -1,15 +1,14 @@
-import { Settings, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SiteSettings } from '@/types';
 
 interface NavbarProps {
   settings: SiteSettings;
   cartItemCount: number;
-  onSettingsClick: () => void;
   onCartClick: () => void;
 }
 
-export function Navbar({ settings, cartItemCount, onSettingsClick, onCartClick }: NavbarProps) {
+export function Navbar({ settings, cartItemCount, onCartClick }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4 py-3">
@@ -45,16 +44,6 @@ export function Navbar({ settings, cartItemCount, onSettingsClick, onCartClick }
                   {cartItemCount}
                 </span>
               )}
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSettingsClick}
-              aria-label="Configurações"
-              title="Admin"
-            >
-              <Settings className="h-5 w-5" />
             </Button>
           </div>
         </div>
