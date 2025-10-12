@@ -23,7 +23,7 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
     if (success) {
       setUsername('');
       setPassword('');
-      onClose();
+      // Don't call onClose() - let parent component handle modal state
     } else {
       setError('Usuário ou senha incorretos');
     }
