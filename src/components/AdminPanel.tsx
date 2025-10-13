@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppData } from '@/types';
-import { saveData, checkStorageUsage } from '@/lib/storage';
 import { toast } from '@/hooks/use-toast';
 import { BrandingTab } from './admin/BrandingTab';
 import { ProductsTab } from './admin/ProductsTab';
@@ -13,6 +12,7 @@ import { InfoTab } from './admin/InfoTab';
 import { ThemeTab } from './admin/ThemeTab';
 import { SectionsTab } from './admin/SectionsTab';
 import { SettingsTab } from './admin/SettingsTab';
+import { saveDataToSupabase } from '@/lib/supabaseStorage';
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,6 +20,7 @@ interface AdminPanelProps {
   onDataChange: (data: AppData) => void;
   onLogout: () => void;
   userSlug?: string;
+  bakeryId?: string;
 }
 export function AdminPanel({
   isOpen,
@@ -27,39 +28,49 @@ export function AdminPanel({
   data,
   onDataChange,
   onLogout,
-  userSlug
+  userSlug,
+  bakeryId
 }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!bakeryId) {
+      console.error('❌ Erro: bakeryId não fornecido');
+      toast({
+        title: "Erro ao salvar",
+        description: "ID da confeitaria não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSaving(true);
+    console.log('🔄 Iniciando salvamento...', { bakeryId, data });
+    
     try {
-      const saved = saveData(data);
+      const saved = await saveDataToSupabase(data, bakeryId);
+      
       if (!saved) {
+        console.error('❌ Salvamento falhou');
         toast({
           title: "Erro ao salvar",
-          description: "Dados muito grandes. Reduza o tamanho das imagens (use imagens menores que 500KB).",
+          description: "Não foi possível salvar as alterações. Verifique o console para detalhes.",
           variant: "destructive"
         });
         setIsSaving(false);
         return;
       }
+      
+      console.log('✅ Salvamento concluído com sucesso!');
       toast({
         title: "Salvo com sucesso!",
-        description: "Suas alterações foram salvas."
+        description: "Suas alterações foram salvas no banco de dados."
       });
-      const usage = checkStorageUsage();
-      if (usage.percentage > 70) {
-        toast({
-          title: "Atenção: Espaço de armazenamento",
-          description: `Você está usando ${usage.percentage.toFixed(0)}% do espaço. Use imagens menores ou exporte um backup.`,
-          variant: "destructive"
-        });
-      }
     } catch (error) {
+      console.error('❌ Erro ao salvar:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro inesperado.",
+        description: "Ocorreu um erro inesperado. Verifique o console para detalhes.",
         variant: "destructive"
       });
     } finally {

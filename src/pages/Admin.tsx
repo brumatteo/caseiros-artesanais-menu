@@ -10,6 +10,7 @@ import { Loader2, Lock } from 'lucide-react';
 import { AdminPanel } from '@/components/AdminPanel';
 import { AppData } from '@/types';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { loadDataFromSupabase } from '@/lib/supabaseStorage';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Admin = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [data, setData] = useState<AppData | null>(null);
   const [userSlug, setUserSlug] = useState<string>('');
+  const [bakeryId, setBakeryId] = useState<string>('');
 
   // Apply theme colors - call hook at top level
   useThemeColors(data?.settings || {} as any);
@@ -55,6 +57,8 @@ const Admin = () => {
 
   const loadUserData = async (userId: string) => {
     try {
+      console.log('📥 Carregando dados do usuário...', { userId });
+      
       // Fetch bakery info
       const { data: bakery, error: bakeryError } = await supabase
         .from('bakeries')
@@ -63,7 +67,7 @@ const Admin = () => {
         .maybeSingle();
 
       if (bakeryError) {
-        console.error('Error fetching bakery:', bakeryError);
+        console.error('❌ Erro ao buscar bakery:', bakeryError);
         toast({
           title: 'Erro',
           description: 'Não foi possível carregar dados da confeitaria',
@@ -73,6 +77,7 @@ const Admin = () => {
       }
 
       if (!bakery) {
+        console.warn('⚠️ Confeitaria não encontrada para o usuário');
         toast({
           title: 'Confeitaria não encontrada',
           description: 'Por favor, complete o cadastro',
@@ -81,64 +86,50 @@ const Admin = () => {
         return;
       }
 
+      console.log('✅ Bakery encontrada:', bakery);
       setUserSlug(bakery.slug);
+      setBakeryId(bakery.id);
 
-      // Fetch products
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('bakery_id', bakery.id)
-        .order('created_at', { ascending: true });
-
-      if (productsError) {
-        console.error('Error fetching products:', productsError);
-      }
-
-      // Create simplified AppData structure
-      const appData: AppData = {
-        settings: {
-          brandName: bakery.confectionery_name,
-          showLogo: false,
-          showName: true,
-          showHeroLogo: false,
-          heroImagePosition: 'center',
-          heroOverlayColor: '#000000',
-          heroOverlayOpacity: 0.5,
-          heroTitle: `Bem-vindo à ${bakery.confectionery_name}`,
-          heroSubtitle: 'Doces artesanais feitos com carinho',
-          whatsappNumber: '',
-          whatsappMessage: 'Olá! Gostaria de fazer um pedido:',
-          aboutTitle: 'Sobre Nós',
-          aboutText: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
-          showAbout: true,
-          extraInfoTitle: 'Informações Importantes',
-          extraInfoText: 'Faça seu pedido com antecedência!',
-          showExtraInfo: true,
-          footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
-          adminPassword: '',
-        },
-        products: (products || []).map((p) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          image: p.image_url,
-          showImage: !!p.image_url,
+      // Carregar dados completos do Supabase
+      const appData = await loadDataFromSupabase(bakery.id);
+      
+      if (appData) {
+        console.log('✅ Dados carregados com sucesso:', appData);
+        setData(appData);
+      } else {
+        console.warn('⚠️ Nenhum dado encontrado, usando dados padrão');
+        // Se não houver dados, criar estrutura padrão
+        const defaultAppData: AppData = {
+          settings: {
+            brandName: bakery.confectionery_name,
+            showLogo: false,
+            showName: true,
+            showHeroLogo: false,
+            heroImagePosition: 'center',
+            heroOverlayColor: '#000000',
+            heroOverlayOpacity: 0.5,
+            heroTitle: `Bem-vindo à ${bakery.confectionery_name}`,
+            heroSubtitle: 'Doces artesanais feitos com carinho',
+            whatsappNumber: '',
+            whatsappMessage: 'Olá! Gostaria de fazer um pedido:',
+            aboutTitle: 'Sobre Nós',
+            aboutText: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
+            showAbout: true,
+            extraInfoTitle: 'Informações Importantes',
+            extraInfoText: 'Faça seu pedido com antecedência!',
+            showExtraInfo: true,
+            footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
+            adminPassword: '',
+          },
+          products: [],
+          sections: [],
+          extras: [],
           tags: [],
-          order: 0,
-          sizes: [{
-            id: 'default',
-            name: 'Padrão',
-            price: Number(p.price),
-          }],
-        })),
-        sections: [],
-        extras: [],
-        tags: [],
-      };
-
-      setData(appData);
+        };
+        setData(defaultAppData);
+      }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('❌ Erro ao carregar dados do usuário:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar seus dados',
@@ -287,6 +278,7 @@ const Admin = () => {
       onDataChange={handleDataChange}
       onLogout={handleLogout}
       userSlug={userSlug}
+      bakeryId={bakeryId}
     />
   );
 };
