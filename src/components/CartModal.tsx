@@ -10,18 +10,16 @@ interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
   cart: CartItem[];
-  onUpdateQuantity: (index: number, delta: number) => void;
-  onRemoveItem: (index: number) => void;
-  onCheckout: (customerName: string, customerPhone: string, message: string) => void;
+  onUpdateCart: (cart: CartItem[]) => void;
+  whatsappNumber: string;
 }
 
 export function CartModal({ 
   isOpen, 
   onClose, 
   cart, 
-  onUpdateQuantity, 
-  onRemoveItem,
-  onCheckout 
+  onUpdateCart,
+  whatsappNumber 
 }: CartModalProps) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -29,12 +27,48 @@ export function CartModal({
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const onUpdateQuantity = (index: number, delta: number) => {
+    const newCart = [...cart];
+    newCart[index].quantity += delta;
+    if (newCart[index].quantity <= 0) {
+      newCart.splice(index, 1);
+    }
+    onUpdateCart(newCart);
+  };
+
+  const onRemoveItem = (index: number) => {
+    const newCart = cart.filter((_, i) => i !== index);
+    onUpdateCart(newCart);
+  };
+
   const handleCheckout = () => {
     if (!customerName.trim() || !customerPhone.trim()) {
       alert('Por favor, preencha seu nome e telefone.');
       return;
     }
-    onCheckout(customerName, customerPhone, message);
+    
+    // Build WhatsApp message
+    let whatsappMessage = `*Novo Pedido*\n\n`;
+    whatsappMessage += `👤 *Nome:* ${customerName}\n`;
+    whatsappMessage += `📱 *Telefone:* ${customerPhone}\n\n`;
+    whatsappMessage += `*Itens:*\n`;
+    
+    cart.forEach((item, index) => {
+      whatsappMessage += `${index + 1}. ${item.productName} - ${item.sizeName}\n`;
+      whatsappMessage += `   Quantidade: ${item.quantity}x\n`;
+      whatsappMessage += `   Subtotal: R$ ${(item.price * item.quantity).toFixed(2)}\n\n`;
+    });
+    
+    whatsappMessage += `*Total: R$ ${total.toFixed(2)}*\n`;
+    
+    if (message.trim()) {
+      whatsappMessage += `\n📝 *Observações:* ${message}`;
+    }
+
+    const phone = whatsappNumber.replace(/\D/g, '');
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`;
+    window.open(url, '_blank');
+    onClose();
   };
 
   return (

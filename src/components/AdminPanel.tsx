@@ -19,13 +19,15 @@ interface AdminPanelProps {
   data: AppData;
   onDataChange: (data: AppData) => void;
   onLogout: () => void;
+  userSlug?: string;
 }
 export function AdminPanel({
   isOpen,
   onClose,
   data,
   onDataChange,
-  onLogout
+  onLogout,
+  userSlug
 }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
@@ -114,6 +116,16 @@ export function AdminPanel({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 border-t pt-4 mt-4">
+          {userSlug && (
+            <Button
+              onClick={() => window.open(`/${userSlug}`, '_blank')}
+              variant="outline"
+              className="flex-1 min-w-[150px]"
+            >
+              Ver Meu Site
+            </Button>
+          )}
+          
           <Button onClick={handleSave} disabled={isSaving} className="flex-1 min-w-[150px]">
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}

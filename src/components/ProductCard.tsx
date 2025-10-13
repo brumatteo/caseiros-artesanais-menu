@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Product, Tag } from '@/types';
+import { Product, Tag, CartItem } from '@/types';
 
 interface ProductCardProps {
   product: Product;
   tags: Tag[];
-  onAddToCart: (productId: string, sizeId: string) => void;
+  onAddToCart: (item: CartItem) => void;
 }
 
 export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
@@ -88,7 +88,15 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
 
         {/* Add Button */}
         <Button 
-          onClick={() => onAddToCart(product.id, selectedSizeId)}
+          onClick={() => onAddToCart({
+            productId: product.id,
+            productName: product.name,
+            sizeId: selectedSizeId,
+            sizeName: selectedSize.name,
+            price: selectedSize.price,
+            quantity: 1,
+            type: 'product'
+          })}
           className="w-full"
           size="lg"
         >

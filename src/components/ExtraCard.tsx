@@ -1,10 +1,10 @@
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Extra } from '@/types';
+import { Extra, CartItem } from '@/types';
 
 interface ExtraCardProps {
   extra: Extra;
-  onAddToCart: (extraId: string) => void;
+  onAddToCart: (item: CartItem) => void;
 }
 
 export function ExtraCard({ extra, onAddToCart }: ExtraCardProps) {
@@ -38,7 +38,15 @@ export function ExtraCard({ extra, onAddToCart }: ExtraCardProps) {
           </p>
           
           <Button 
-            onClick={() => onAddToCart(extra.id)}
+            onClick={() => onAddToCart({
+              productId: extra.id,
+              productName: extra.name,
+              sizeId: extra.id,
+              sizeName: 'Unidade',
+              price: extra.price,
+              quantity: 1,
+              type: 'extra'
+            })}
             size="sm"
           >
             <Plus className="h-4 w-4 mr-1" />
