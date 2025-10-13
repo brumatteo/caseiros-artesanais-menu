@@ -242,7 +242,8 @@ export async function loadDataFromSupabase(bakeryId: string): Promise<AppData | 
     console.log('🔍 Nome da confeitaria:', bakery.confectionery_name);
     
     const appData: AppData = {
-      settings: (bakery.settings as any) || {
+      settings: {
+        // Defaults primeiro
         brandName: bakery.confectionery_name,
         showLogo: false,
         showName: true,
@@ -262,6 +263,9 @@ export async function loadDataFromSupabase(bakeryId: string): Promise<AppData | 
         showExtraInfo: true,
         footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
         adminPassword: '',
+        
+        // Depois sobrescreve com o que vem do banco
+        ...(bakery.settings || {})
       },
       products: (products || []).map((p) => ({
         id: p.id,
