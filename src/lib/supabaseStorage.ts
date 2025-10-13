@@ -6,20 +6,32 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     console.log('💾 Iniciando salvamento no Supabase...', { bakeryId, data });
 
     // 1. Atualizar bakeries (settings)
+    console.log('📝 Salvando settings completo:', JSON.stringify(data.settings, null, 2));
+    
+    const updateData = {
+      confectionery_name: data.settings.brandName,
+      settings: data.settings,
+      updated_at: new Date().toISOString(),
+    };
+    
+    console.log('📝 Dados que serão atualizados na tabela bakeries:', updateData);
+    
     const { error: bakeryError } = await supabase
       .from('bakeries')
-      .update({
-        confectionery_name: data.settings.brandName,
-        settings: data.settings,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', bakeryId);
 
     if (bakeryError) {
       console.error('❌ Erro ao atualizar bakery:', bakeryError);
       throw bakeryError;
     }
-    console.log('✅ Bakery atualizada com sucesso');
+    console.log('✅ Bakery atualizada com sucesso! Settings salvos incluindo:', {
+      brandName: data.settings.brandName,
+      logoImage: data.settings.logoImage ? '✅ tem logo' : '❌ sem logo',
+      heroImage: data.settings.heroImage ? '✅ tem hero' : '❌ sem hero',
+      colorPrimary: data.settings.colorPrimary || 'padrão',
+      colorSecondary: data.settings.colorSecondary || 'padrão',
+    });
 
     // 2. Deletar produtos antigos e inserir novos
     const { error: deleteProductsError } = await supabase
@@ -226,6 +238,9 @@ export async function loadDataFromSupabase(bakeryId: string): Promise<AppData | 
     console.log('✅ Tags carregadas:', tags?.length || 0);
 
     // 6. Montar AppData
+    console.log('🔍 Settings do banco:', bakery.settings);
+    console.log('🔍 Nome da confeitaria:', bakery.confectionery_name);
+    
     const appData: AppData = {
       settings: (bakery.settings as any) || {
         brandName: bakery.confectionery_name,
