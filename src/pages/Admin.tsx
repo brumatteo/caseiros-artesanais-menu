@@ -56,18 +56,33 @@ const Admin = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserData = async (userId: string) => {
+  const loadUserData = async (userId: string, retryCount = 0) => {
     try {
-      // Fetch user profile
+      // Fetch user profile with retry for new users (waiting for trigger)
       const { data: profile } = await supabase
         .from('profiles')
-        .select('slug')
+        .select('slug, confectionery_name')
         .eq('id', userId)
         .maybeSingle();
 
-      if (profile) {
-        setUserSlug(profile.slug);
+      // If profile not found and this is a retry, wait and try again
+      if (!profile && retryCount < 3) {
+        setTimeout(() => {
+          loadUserData(userId, retryCount + 1);
+        }, 1000);
+        return;
       }
+
+      if (!profile) {
+        toast({
+          title: 'Erro',
+          description: 'Perfil não encontrado. Por favor, entre em contato com o suporte.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setUserSlug(profile.slug);
 
       // Fetch all user data in parallel
       const [settingsRes, productsRes, sizesRes, sectionsRes, extrasRes, tagsRes] = 
@@ -82,9 +97,9 @@ const Admin = () => {
 
       if (!settingsRes.data) {
         // First time login - create default settings
-        const created = await createDefaultSettings(userId);
+        const created = await createDefaultSettings(userId, profile.confectionery_name);
         if (created) {
-          await loadUserData(userId); // Reload data
+          await loadUserData(userId, 0); // Reload data
         }
         return;
       }
@@ -176,28 +191,11 @@ const Admin = () => {
     }
   };
 
-  const createDefaultSettings = async (userId: string): Promise<boolean> => {
+  const createDefaultSettings = async (userId: string, confectioneryName: string): Promise<boolean> => {
     try {
-      // Check if profile exists first
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('confectionery_name')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        console.error('Profile not found:', profileError);
-        toast({
-          title: 'Erro de configuração',
-          description: 'Perfil não encontrado. Faça logout e cadastre-se novamente.',
-          variant: 'destructive',
-        });
-        return false;
-      }
-
       const defaultSettings = {
         user_id: userId,
-        brand_name: profile.confectionery_name || 'Minha Confeitaria',
+        brand_name: confectioneryName || 'Minha Confeitaria',
         show_logo: false,
         show_name: true,
         show_hero_logo: false,
@@ -214,7 +212,7 @@ const Admin = () => {
         extra_info_title: 'Informações Importantes',
         extra_info_text: 'Faça seu pedido com antecedência!',
         show_extra_info: true,
-        footer_text: `© ${new Date().getFullYear()} ${profile.confectionery_name || 'Minha Confeitaria'}. Todos os direitos reservados.`,
+        footer_text: `© ${new Date().getFullYear()} ${confectioneryName || 'Minha Confeitaria'}. Todos os direitos reservados.`,
       };
 
       const { error } = await supabase.from('user_settings').insert(defaultSettings);

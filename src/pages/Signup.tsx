@@ -91,34 +91,15 @@ export default function Signup() {
       }
 
       if (authData.user) {
-        // Create profile manually (in case trigger fails)
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: email,
-            confectionery_name: confectioneryName,
-            slug: slug,
-          });
-
-        if (profileError && !profileError.message.includes('duplicate')) {
-          console.error('Profile creation error:', profileError);
-          toast({
-            title: 'Aviso',
-            description: 'Conta criada, mas houve um problema ao configurar o perfil.',
-            variant: 'destructive',
-          });
-        }
-
         setGeneratedSlug(slug);
         setShowLink(true);
         
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Redirecionando para o painel...',
+          description: 'Aguarde enquanto configuramos seu perfil...',
         });
 
-        // Redirect to admin after 2 seconds
+        // Wait for trigger to create profile, then redirect
         setTimeout(() => {
           navigate('/admin');
         }, 2000);
