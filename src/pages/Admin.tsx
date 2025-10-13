@@ -21,11 +21,8 @@ const Admin = () => {
   const [data, setData] = useState<AppData | null>(null);
   const [userSlug, setUserSlug] = useState<string>('');
 
-  useEffect(() => {
-    if (data?.settings) {
-      useThemeColors(data.settings);
-    }
-  }, [data]);
+  // Apply theme colors - call hook at top level
+  useThemeColors(data?.settings || {} as any);
 
   useEffect(() => {
     // Check authentication status
