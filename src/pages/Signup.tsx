@@ -68,6 +68,7 @@ export default function Signup() {
       }
 
       // Sign up the user
+      console.log('🔐 Criando usuário no Auth...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -77,6 +78,7 @@ export default function Signup() {
       });
 
       if (authError) {
+        console.error('❌ Erro no Auth:', authError);
         toast({
           title: 'Erro ao criar conta',
           description: authError.message,
@@ -87,6 +89,7 @@ export default function Signup() {
       }
 
       if (!authData.user) {
+        console.error('❌ Usuário não foi criado');
         toast({
           title: 'Erro',
           description: 'Não foi possível criar a conta',
@@ -96,16 +99,26 @@ export default function Signup() {
         return;
       }
 
-      // Manually create bakery entry
-      const { error: bakeryError } = await supabase
+      console.log('✅ Usuário criado:', authData.user.id);
+      console.log('📝 Criando registro na tabela bakeries...');
+
+      // Manually create bakery entry with explicit user_id
+      const bakeryData = {
+        user_id: authData.user.id,
+        confectionery_name: confectioneryName,
+        slug: slug,
+      };
+      
+      console.log('📦 Dados para inserir:', bakeryData);
+
+      const { data: bakeryResult, error: bakeryError } = await supabase
         .from('bakeries')
-        .insert({
-          user_id: authData.user.id,
-          confectionery_name: confectioneryName,
-          slug: slug,
-        });
+        .insert(bakeryData)
+        .select();
 
       if (bakeryError) {
+        console.error('❌ Erro ao criar bakery:', bakeryError);
+        console.error('Detalhes:', JSON.stringify(bakeryError, null, 2));
         toast({
           title: 'Erro ao criar confeitaria',
           description: bakeryError.message,
@@ -114,6 +127,8 @@ export default function Signup() {
         setIsLoading(false);
         return;
       }
+
+      console.log('✅ Bakery criada:', bakeryResult);
 
       setGeneratedSlug(slug);
       setShowLink(true);
