@@ -5,18 +5,47 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { AppData } from '@/types';
 import { ImageUpload } from './ImageUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface BrandingTabProps {
   data: AppData;
   onDataChange: (data: AppData) => void;
+  bakeryId?: string;
 }
 
-export function BrandingTab({ data, onDataChange }: BrandingTabProps) {
-  const updateSettings = (updates: Partial<typeof data.settings>) => {
+export function BrandingTab({ data, onDataChange, bakeryId }: BrandingTabProps) {
+  const updateSettings = async (updates: Partial<typeof data.settings>) => {
+    const newSettings = { ...data.settings, ...updates };
+    
+    // Atualiza estado local
     onDataChange({
       ...data,
-      settings: { ...data.settings, ...updates }
+      settings: newSettings
     });
+    
+    // Salva no Supabase
+    if (bakeryId) {
+      const { error } = await supabase
+        .from('bakeries')
+        .update({ 
+          settings: newSettings,
+          confectionery_name: newSettings.brandName,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bakeryId);
+        
+      if (error) {
+        console.error('❌ Erro ao salvar marca:', error);
+        toast({ 
+          title: "Erro ao salvar", 
+          description: "Não foi possível salvar as alterações.",
+          variant: "destructive" 
+        });
+      } else {
+        console.log('✅ Marca salva automaticamente:', updates);
+      }
+    }
   };
 
   return (

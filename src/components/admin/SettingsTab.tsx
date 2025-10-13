@@ -5,21 +5,48 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AppData } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SettingsTabProps {
   data: AppData;
   onDataChange: (data: AppData) => void;
+  bakeryId?: string;
 }
 
-export function SettingsTab({ data, onDataChange }: SettingsTabProps) {
+export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const updateSettings = (updates: Partial<typeof data.settings>) => {
+  const updateSettings = async (updates: Partial<typeof data.settings>) => {
+    const newSettings = { ...data.settings, ...updates };
+    
+    // Atualiza estado local
     onDataChange({
       ...data,
-      settings: { ...data.settings, ...updates }
+      settings: newSettings
     });
+    
+    // Salva no Supabase
+    if (bakeryId) {
+      const { error } = await supabase
+        .from('bakeries')
+        .update({ 
+          settings: newSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bakeryId);
+        
+      if (error) {
+        console.error('❌ Erro ao salvar configurações:', error);
+        toast({ 
+          title: "Erro ao salvar", 
+          description: "Não foi possível salvar as configurações.",
+          variant: "destructive" 
+        });
+      } else {
+        console.log('✅ Configurações salvas automaticamente');
+      }
+    }
   };
 
   const handlePasswordChange = () => {

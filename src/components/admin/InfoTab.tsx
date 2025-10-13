@@ -4,18 +4,46 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AppData } from '@/types';
 import { ImageUpload } from './ImageUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface InfoTabProps {
   data: AppData;
   onDataChange: (data: AppData) => void;
+  bakeryId?: string;
 }
 
-export function InfoTab({ data, onDataChange }: InfoTabProps) {
-  const updateSettings = (updates: Partial<typeof data.settings>) => {
+export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
+  const updateSettings = async (updates: Partial<typeof data.settings>) => {
+    const newSettings = { ...data.settings, ...updates };
+    
+    // Atualiza estado local
     onDataChange({
       ...data,
-      settings: { ...data.settings, ...updates }
+      settings: newSettings
     });
+    
+    // Salva no Supabase
+    if (bakeryId) {
+      const { error } = await supabase
+        .from('bakeries')
+        .update({ 
+          settings: newSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bakeryId);
+        
+      if (error) {
+        console.error('❌ Erro ao salvar informações:', error);
+        toast({ 
+          title: "Erro ao salvar", 
+          description: "Não foi possível salvar as informações.",
+          variant: "destructive" 
+        });
+      } else {
+        console.log('✅ Informações salvas automaticamente:', updates);
+      }
+    }
   };
 
   return (

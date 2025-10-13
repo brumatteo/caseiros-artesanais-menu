@@ -96,11 +96,11 @@ export function AdminPanel({
 
           <div className="mt-6">
             <TabsContent value="branding">
-              <BrandingTab data={data} onDataChange={onDataChange} />
+              <BrandingTab data={data} onDataChange={onDataChange} bakeryId={bakeryId} />
             </TabsContent>
 
             <TabsContent value="theme">
-              <ThemeTab data={data} onDataChange={onDataChange} />
+              <ThemeTab data={data} onDataChange={onDataChange} bakeryId={bakeryId} />
             </TabsContent>
 
             <TabsContent value="sections">
@@ -116,11 +116,11 @@ export function AdminPanel({
             </TabsContent>
 
             <TabsContent value="info">
-              <InfoTab data={data} onDataChange={onDataChange} />
+              <InfoTab data={data} onDataChange={onDataChange} bakeryId={bakeryId} />
             </TabsContent>
 
             <TabsContent value="settings">
-              <SettingsTab data={data} onDataChange={onDataChange} />
+              <SettingsTab data={data} onDataChange={onDataChange} bakeryId={bakeryId} />
             </TabsContent>
           </div>
         </Tabs>
