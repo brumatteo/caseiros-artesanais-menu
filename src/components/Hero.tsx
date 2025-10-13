@@ -1,5 +1,4 @@
 import { SiteSettings } from '@/types';
-import heroImageDefault from '@/assets/hero-cakes.jpg';
 import { Button } from '@/components/ui/button';
 
 interface HeroProps {
@@ -7,24 +6,29 @@ interface HeroProps {
 }
 
 export function Hero({ settings }: HeroProps) {
+  // Não renderiza se não tiver dados essenciais
+  if (!settings.heroTitle && !settings.heroImage) {
+    return null;
+  }
+
   const overlayStyle = {
-    backgroundColor: settings.heroOverlayColor,
-    opacity: settings.heroOverlayOpacity,
+    backgroundColor: settings.heroOverlayColor || '#000000',
+    opacity: settings.heroOverlayOpacity || 0.5,
   };
 
-  // Usar imagem padrão se não houver imagem customizada
-  const backgroundImage = settings.heroImage || heroImageDefault;
   const objectPosition = settings.heroImagePosition || 'center';
 
   return (
     <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
-      {/* Background Image */}
-      <img 
-        src={backgroundImage} 
-        alt="Hero background" 
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ objectPosition }}
-      />
+      {/* Background Image - só renderiza se tiver */}
+      {settings.heroImage && (
+        <img 
+          src={settings.heroImage} 
+          alt="Hero background" 
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition }}
+        />
+      )}
       
       {/* Overlay */}
       <div 
@@ -42,9 +46,11 @@ export function Hero({ settings }: HeroProps) {
           />
         )}
         
-        <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white max-w-4xl mb-4 leading-tight animate-fade-in">
-          {settings.heroTitle}
-        </h2>
+        {settings.heroTitle && (
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white max-w-4xl mb-4 leading-tight animate-fade-in">
+            {settings.heroTitle}
+          </h2>
+        )}
         
         {settings.heroSubtitle && (
           <p className="text-lg md:text-xl text-white/90 max-w-2xl animate-fade-in" style={{ animationDelay: '0.1s' }}>

@@ -237,35 +237,31 @@ export async function loadDataFromSupabase(bakeryId: string): Promise<AppData | 
     }
     console.log('✅ Tags carregadas:', tags?.length || 0);
 
-    // 6. Montar AppData
+    // 6. Montar AppData - SEM DEFAULTS, apenas dados do Supabase
     console.log('🔍 Settings do banco:', bakery.settings);
     console.log('🔍 Nome da confeitaria:', bakery.confectionery_name);
     
     const appData: AppData = {
-      settings: {
-        // Defaults primeiro
-        brandName: bakery.confectionery_name,
+      settings: bakery.settings || {
+        brandName: bakery.confectionery_name || '',
         showLogo: false,
-        showName: true,
+        showName: false,
         showHeroLogo: false,
         heroImagePosition: 'center',
         heroOverlayColor: '#000000',
         heroOverlayOpacity: 0.5,
-        heroTitle: `Bem-vindo à ${bakery.confectionery_name}`,
-        heroSubtitle: 'Doces artesanais feitos com carinho',
+        heroTitle: '',
+        heroSubtitle: '',
         whatsappNumber: '',
-        whatsappMessage: 'Olá! Gostaria de fazer um pedido:',
-        aboutTitle: 'Sobre Nós',
-        aboutText: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
-        showAbout: true,
-        extraInfoTitle: 'Informações Importantes',
-        extraInfoText: 'Faça seu pedido com antecedência!',
-        showExtraInfo: true,
-        footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
+        whatsappMessage: '',
+        aboutTitle: '',
+        aboutText: '',
+        showAbout: false,
+        extraInfoTitle: '',
+        extraInfoText: '',
+        showExtraInfo: false,
+        footerText: '',
         adminPassword: '',
-        
-        // Depois sobrescreve com o que vem do banco
-        ...(bakery.settings || {})
       },
       products: (products || []).map((p) => ({
         id: p.id,

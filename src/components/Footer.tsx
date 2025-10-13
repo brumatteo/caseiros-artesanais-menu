@@ -40,12 +40,14 @@ export function Footer({ settings }: FooterProps) {
             )}
           </div>
           
-          {/* Copyright */}
-          <div className="border-t border-border pt-4 w-full text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2025 Bolos Caseirinhos
-            </p>
-          </div>
+          {/* Copyright - só renderiza se tiver texto */}
+          {settings.footerText && (
+            <div className="border-t border-border pt-4 w-full text-center">
+              <p className="text-sm text-muted-foreground">
+                {settings.footerText}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </footer>
