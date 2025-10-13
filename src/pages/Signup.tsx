@@ -51,13 +51,13 @@ export default function Signup() {
 
     try {
       // Check if slug already exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
+      const { data: existingBakery } = await supabase
+        .from('bakeries')
         .select('slug')
         .eq('slug', slug)
         .maybeSingle();
 
-      if (existingProfile) {
+      if (existingBakery) {
         toast({
           title: 'Erro',
           description: 'Já existe uma confeitaria com esse nome. Tente outro.',
@@ -72,10 +72,6 @@ export default function Signup() {
         email,
         password,
         options: {
-          data: {
-            confectionery_name: confectioneryName,
-            slug: slug,
-          },
           emailRedirectTo: `${window.location.origin}/admin`,
         },
       });
@@ -90,20 +86,47 @@ export default function Signup() {
         return;
       }
 
-      if (authData.user) {
-        setGeneratedSlug(slug);
-        setShowLink(true);
-        
+      if (!authData.user) {
         toast({
-          title: 'Conta criada com sucesso!',
-          description: 'Aguarde enquanto configuramos seu perfil...',
+          title: 'Erro',
+          description: 'Não foi possível criar a conta',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Manually create bakery entry
+      const { error: bakeryError } = await supabase
+        .from('bakeries')
+        .insert({
+          user_id: authData.user.id,
+          confectionery_name: confectioneryName,
+          slug: slug,
         });
 
-        // Wait for trigger to create profile, then redirect
-        setTimeout(() => {
-          navigate('/admin');
-        }, 2000);
+      if (bakeryError) {
+        toast({
+          title: 'Erro ao criar confeitaria',
+          description: bakeryError.message,
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
       }
+
+      setGeneratedSlug(slug);
+      setShowLink(true);
+      
+      toast({
+        title: 'Conta criada com sucesso!',
+        description: 'Redirecionando para o painel...',
+      });
+
+      // Redirect after a moment
+      setTimeout(() => {
+        navigate('/admin');
+      }, 1500);
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({

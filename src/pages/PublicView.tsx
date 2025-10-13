@@ -8,7 +8,7 @@ import { ExtraCard } from '@/components/ExtraCard';
 import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';
-import { AppData, Product, Extra, CartItem } from '@/types';
+import { AppData, Product, CartItem } from '@/types';
 import { Loader2 } from 'lucide-react';
 
 export default function PublicView() {
@@ -27,112 +27,71 @@ export default function PublicView() {
 
     const fetchData = async () => {
       try {
-        // Get profile by slug
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
+        // Get bakery by slug
+        const { data: bakery, error: bakeryError } = await supabase
+          .from('bakeries')
           .select('*')
           .eq('slug', slug)
-          .single();
+          .maybeSingle();
 
-        if (profileError || !profile) {
+        if (bakeryError || !bakery) {
           navigate('/');
           return;
         }
 
-        // Fetch all data in parallel
-        const [settingsRes, productsRes, sizesRes, sectionsRes, extrasRes, tagsRes] = 
-          await Promise.all([
-            supabase.from('user_settings').select('*').eq('user_id', profile.id).single(),
-            supabase.from('products').select('*').eq('user_id', profile.id),
-            supabase.from('product_sizes').select('*'),
-            supabase.from('sections').select('*').eq('user_id', profile.id),
-            supabase.from('extras').select('*').eq('user_id', profile.id),
-            supabase.from('tags').select('*').eq('user_id', profile.id),
-          ]);
+        // Fetch products for this bakery
+        const { data: products, error: productsError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('bakery_id', bakery.id)
+          .order('created_at', { ascending: true });
 
-        if (settingsRes.error || !settingsRes.data) {
-          navigate('/');
-          return;
+        if (productsError) {
+          console.error('Error fetching products:', productsError);
         }
 
         // Transform database data to AppData format
-        const products: Product[] = (productsRes.data || []).map((p) => ({
+        const productsData: Product[] = (products || []).map((p) => ({
           id: p.id,
           name: p.name,
-          description: p.description,
-          image: p.image,
-          showImage: p.show_image,
-          tags: p.tags || [],
-          order: p.order_index,
-          sizes: (sizesRes.data || [])
-            .filter((s) => s.product_id === p.id)
-            .map((s) => ({
-              id: s.id,
-              name: s.name,
-              price: Number(s.price),
-            })),
+          description: p.description || '',
+          image: p.image_url,
+          showImage: !!p.image_url,
+          tags: [],
+          order: 0,
+          sizes: [{
+            id: 'default',
+            name: 'Padrão',
+            price: Number(p.price),
+          }],
         }));
 
-        const extras: Extra[] = (extrasRes.data || []).map((e) => ({
-          id: e.id,
-          name: e.name,
-          description: e.description,
-          price: Number(e.price),
-          image: e.image,
-          showImage: e.show_image,
-          order: e.order_index,
-        }));
-
-        const settings = settingsRes.data;
         const appData: AppData = {
           settings: {
-            brandName: settings.brand_name,
-            showLogo: settings.show_logo,
-            showName: settings.show_name,
-            logoImage: settings.logo_image,
-            heroLogoImage: settings.hero_logo_image,
-            showHeroLogo: settings.show_hero_logo,
-            heroImage: settings.hero_image,
-            heroImagePosition: settings.hero_image_position,
-            heroOverlayColor: settings.hero_overlay_color,
-            heroOverlayOpacity: settings.hero_overlay_opacity,
-            heroTitle: settings.hero_title,
-            heroSubtitle: settings.hero_subtitle,
-            whatsappNumber: settings.whatsapp_number,
-            whatsappMessage: settings.whatsapp_message,
-            aboutTitle: settings.about_title,
-            aboutText: settings.about_text,
-            aboutImage: settings.about_image,
-            showAbout: settings.show_about,
-            extraInfoTitle: settings.extra_info_title,
-            extraInfoText: settings.extra_info_text,
-            showExtraInfo: settings.show_extra_info,
-            footerText: settings.footer_text,
-            footerAddress: settings.footer_address,
-            footerPhone: settings.footer_phone,
-            instagramUrl: settings.instagram_url,
+            brandName: bakery.confectionery_name,
+            showLogo: false,
+            showName: true,
+            showHeroLogo: false,
+            heroImagePosition: 'center',
+            heroOverlayColor: '#000000',
+            heroOverlayOpacity: 0.5,
+            heroTitle: `Bem-vindo à ${bakery.confectionery_name}`,
+            heroSubtitle: 'Doces artesanais feitos com carinho',
+            whatsappNumber: '',
+            whatsappMessage: 'Olá! Gostaria de fazer um pedido:',
+            aboutTitle: 'Sobre Nós',
+            aboutText: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
+            showAbout: true,
+            extraInfoTitle: 'Informações Importantes',
+            extraInfoText: 'Faça seu pedido com antecedência!',
+            showExtraInfo: true,
+            footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
             adminPassword: '',
-            colorPrimary: settings.color_primary,
-            colorSecondary: settings.color_secondary,
-            colorAccent: settings.color_accent,
-            colorBackground: settings.color_background,
-            colorForeground: settings.color_foreground,
           },
-          products,
-          sections: (sectionsRes.data || []).map((s) => ({
-            id: s.id,
-            name: s.name,
-            visible: s.visible,
-            order: s.order_index,
-            productIds: s.product_ids || [],
-          })),
-          extras,
-          tags: (tagsRes.data || []).map((t) => ({
-            id: t.id,
-            name: t.name,
-            color: t.color,
-            emoji: t.emoji,
-          })),
+          products: productsData,
+          sections: [],
+          extras: [],
+          tags: [],
         };
 
         setData(appData);
@@ -175,58 +134,26 @@ export default function PublicView() {
     return null;
   }
 
-  const visibleSections = data.sections
-    .filter((s) => s.visible)
-    .sort((a, b) => a.order - b.order);
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar settings={data.settings} cartItemCount={cart.length} onCartClick={() => setIsCartOpen(true)} />
       <Hero settings={data.settings} />
 
       <main className="container mx-auto px-4 py-12">
-        {visibleSections.map((section) => {
-          const sectionProducts = section.productIds
-            .map((id) => data.products.find((p) => p.id === id))
-            .filter((p): p is Product => p !== undefined)
-            .sort((a, b) => a.order - b.order);
-
-          if (sectionProducts.length === 0) return null;
-
-          return (
-            <section key={section.id} className="mb-16">
-              <h2 className="text-3xl font-display font-bold text-center mb-8">
-                {section.name}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sectionProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    tags={data.tags}
-                    onAddToCart={handleAddToCart}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-
-        {data.extras.length > 0 && (
+        {data.products.length > 0 && (
           <section className="mb-16">
             <h2 className="text-3xl font-display font-bold text-center mb-8">
-              Adicionais
+              Nossos Produtos
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.extras
-                .sort((a, b) => a.order - b.order)
-                .map((extra) => (
-                  <ExtraCard
-                    key={extra.id}
-                    extra={extra}
-                    onAddToCart={handleAddToCart}
-                  />
-                ))}
+              {data.products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  tags={data.tags}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
             </div>
           </section>
         )}

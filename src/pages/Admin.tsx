@@ -56,128 +56,87 @@ const Admin = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserData = async (userId: string, retryCount = 0) => {
+  const loadUserData = async (userId: string) => {
     try {
-      // Fetch user profile with retry for new users (waiting for trigger)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('slug, confectionery_name')
-        .eq('id', userId)
+      // Fetch bakery info
+      const { data: bakery, error: bakeryError } = await supabase
+        .from('bakeries')
+        .select('*')
+        .eq('user_id', userId)
         .maybeSingle();
 
-      // If profile not found and this is a retry, wait and try again
-      if (!profile && retryCount < 3) {
-        setTimeout(() => {
-          loadUserData(userId, retryCount + 1);
-        }, 1000);
-        return;
-      }
-
-      if (!profile) {
+      if (bakeryError) {
+        console.error('Error fetching bakery:', bakeryError);
         toast({
           title: 'Erro',
-          description: 'Perfil não encontrado. Por favor, entre em contato com o suporte.',
+          description: 'Não foi possível carregar dados da confeitaria',
           variant: 'destructive',
         });
         return;
       }
 
-      setUserSlug(profile.slug);
-
-      // Fetch all user data in parallel
-      const [settingsRes, productsRes, sizesRes, sectionsRes, extrasRes, tagsRes] = 
-        await Promise.all([
-          supabase.from('user_settings').select('*').eq('user_id', userId).maybeSingle(),
-          supabase.from('products').select('*').eq('user_id', userId),
-          supabase.from('product_sizes').select('*'),
-          supabase.from('sections').select('*').eq('user_id', userId),
-          supabase.from('extras').select('*').eq('user_id', userId),
-          supabase.from('tags').select('*').eq('user_id', userId),
-        ]);
-
-      if (!settingsRes.data) {
-        // First time login - create default settings
-        const created = await createDefaultSettings(userId, profile.confectionery_name);
-        if (created) {
-          await loadUserData(userId, 0); // Reload data
-        }
+      if (!bakery) {
+        toast({
+          title: 'Confeitaria não encontrada',
+          description: 'Por favor, complete o cadastro',
+          variant: 'destructive',
+        });
         return;
       }
 
-      // Transform to AppData format (same as PublicView)
-      const settings = settingsRes.data;
+      setUserSlug(bakery.slug);
+
+      // Fetch products
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('bakery_id', bakery.id)
+        .order('created_at', { ascending: true });
+
+      if (productsError) {
+        console.error('Error fetching products:', productsError);
+      }
+
+      // Create simplified AppData structure
       const appData: AppData = {
         settings: {
-          brandName: settings.brand_name,
-          showLogo: settings.show_logo,
-          showName: settings.show_name,
-          logoImage: settings.logo_image,
-          heroLogoImage: settings.hero_logo_image,
-          showHeroLogo: settings.show_hero_logo,
-          heroImage: settings.hero_image,
-          heroImagePosition: settings.hero_image_position,
-          heroOverlayColor: settings.hero_overlay_color,
-          heroOverlayOpacity: settings.hero_overlay_opacity,
-          heroTitle: settings.hero_title,
-          heroSubtitle: settings.hero_subtitle,
-          whatsappNumber: settings.whatsapp_number,
-          whatsappMessage: settings.whatsapp_message,
-          aboutTitle: settings.about_title,
-          aboutText: settings.about_text,
-          aboutImage: settings.about_image,
-          showAbout: settings.show_about,
-          extraInfoTitle: settings.extra_info_title,
-          extraInfoText: settings.extra_info_text,
-          showExtraInfo: settings.show_extra_info,
-          footerText: settings.footer_text,
-          footerAddress: settings.footer_address,
-          footerPhone: settings.footer_phone,
-          instagramUrl: settings.instagram_url,
+          brandName: bakery.confectionery_name,
+          showLogo: false,
+          showName: true,
+          showHeroLogo: false,
+          heroImagePosition: 'center',
+          heroOverlayColor: '#000000',
+          heroOverlayOpacity: 0.5,
+          heroTitle: `Bem-vindo à ${bakery.confectionery_name}`,
+          heroSubtitle: 'Doces artesanais feitos com carinho',
+          whatsappNumber: '',
+          whatsappMessage: 'Olá! Gostaria de fazer um pedido:',
+          aboutTitle: 'Sobre Nós',
+          aboutText: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
+          showAbout: true,
+          extraInfoTitle: 'Informações Importantes',
+          extraInfoText: 'Faça seu pedido com antecedência!',
+          showExtraInfo: true,
+          footerText: `© ${new Date().getFullYear()} ${bakery.confectionery_name}. Todos os direitos reservados.`,
           adminPassword: '',
-          colorPrimary: settings.color_primary,
-          colorSecondary: settings.color_secondary,
-          colorAccent: settings.color_accent,
-          colorBackground: settings.color_background,
-          colorForeground: settings.color_foreground,
         },
-        products: (productsRes.data || []).map((p) => ({
+        products: (products || []).map((p) => ({
           id: p.id,
           name: p.name,
-          description: p.description,
-          image: p.image,
-          showImage: p.show_image,
-          tags: p.tags || [],
-          order: p.order_index,
-          sizes: (sizesRes.data || [])
-            .filter((s) => s.product_id === p.id)
-            .map((s) => ({
-              id: s.id,
-              name: s.name,
-              price: Number(s.price),
-            })),
+          description: p.description || '',
+          image: p.image_url,
+          showImage: !!p.image_url,
+          tags: [],
+          order: 0,
+          sizes: [{
+            id: 'default',
+            name: 'Padrão',
+            price: Number(p.price),
+          }],
         })),
-        sections: (sectionsRes.data || []).map((s) => ({
-          id: s.id,
-          name: s.name,
-          visible: s.visible,
-          order: s.order_index,
-          productIds: s.product_ids || [],
-        })),
-        extras: (extrasRes.data || []).map((e) => ({
-          id: e.id,
-          name: e.name,
-          description: e.description,
-          price: Number(e.price),
-          image: e.image,
-          showImage: e.show_image,
-          order: e.order_index,
-        })),
-        tags: (tagsRes.data || []).map((t) => ({
-          id: t.id,
-          name: t.name,
-          color: t.color,
-          emoji: t.emoji,
-        })),
+        sections: [],
+        extras: [],
+        tags: [],
       };
 
       setData(appData);
@@ -191,53 +150,6 @@ const Admin = () => {
     }
   };
 
-  const createDefaultSettings = async (userId: string, confectioneryName: string): Promise<boolean> => {
-    try {
-      const defaultSettings = {
-        user_id: userId,
-        brand_name: confectioneryName || 'Minha Confeitaria',
-        show_logo: false,
-        show_name: true,
-        show_hero_logo: false,
-        hero_image_position: 'center',
-        hero_overlay_color: '#000000',
-        hero_overlay_opacity: 0.5,
-        hero_title: 'Bem-vindo à nossa confeitaria',
-        hero_subtitle: 'Doces artesanais feitos com carinho',
-        whatsapp_number: '',
-        whatsapp_message: 'Olá! Gostaria de fazer um pedido:',
-        about_title: 'Sobre Nós',
-        about_text: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
-        show_about: true,
-        extra_info_title: 'Informações Importantes',
-        extra_info_text: 'Faça seu pedido com antecedência!',
-        show_extra_info: true,
-        footer_text: `© ${new Date().getFullYear()} ${confectioneryName || 'Minha Confeitaria'}. Todos os direitos reservados.`,
-      };
-
-      const { error } = await supabase.from('user_settings').insert(defaultSettings);
-      
-      if (error) {
-        console.error('Error creating settings:', error);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível criar as configurações: ' + error.message,
-          variant: 'destructive',
-        });
-        return false;
-      }
-      
-      return true;
-    } catch (error: any) {
-      console.error('Error in createDefaultSettings:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao criar configurações',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
