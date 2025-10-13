@@ -55,7 +55,7 @@ export default function Signup() {
         .from('profiles')
         .select('slug')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
       if (existingProfile) {
         toast({
@@ -91,23 +91,43 @@ export default function Signup() {
       }
 
       if (authData.user) {
+        // Create profile manually (in case trigger fails)
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            email: email,
+            confectionery_name: confectioneryName,
+            slug: slug,
+          });
+
+        if (profileError && !profileError.message.includes('duplicate')) {
+          console.error('Profile creation error:', profileError);
+          toast({
+            title: 'Aviso',
+            description: 'Conta criada, mas houve um problema ao configurar o perfil.',
+            variant: 'destructive',
+          });
+        }
+
         setGeneratedSlug(slug);
         setShowLink(true);
         
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Verifique seu email para confirmar a conta.',
+          description: 'Redirecionando para o painel...',
         });
 
-        // Redirect to admin after 3 seconds
+        // Redirect to admin after 2 seconds
         setTimeout(() => {
           navigate('/admin');
-        }, 3000);
+        }, 2000);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: 'Erro',
-        description: 'Ocorreu um erro ao criar a conta. Tente novamente.',
+        description: error.message || 'Ocorreu um erro ao criar a conta. Tente novamente.',
         variant: 'destructive',
       });
     } finally {

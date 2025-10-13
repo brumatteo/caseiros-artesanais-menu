@@ -63,7 +63,7 @@ const Admin = () => {
         .from('profiles')
         .select('slug')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         setUserSlug(profile.slug);
@@ -72,7 +72,7 @@ const Admin = () => {
       // Fetch all user data in parallel
       const [settingsRes, productsRes, sizesRes, sectionsRes, extrasRes, tagsRes] = 
         await Promise.all([
-          supabase.from('user_settings').select('*').eq('user_id', userId).single(),
+          supabase.from('user_settings').select('*').eq('user_id', userId).maybeSingle(),
           supabase.from('products').select('*').eq('user_id', userId),
           supabase.from('product_sizes').select('*'),
           supabase.from('sections').select('*').eq('user_id', userId),
@@ -82,8 +82,10 @@ const Admin = () => {
 
       if (!settingsRes.data) {
         // First time login - create default settings
-        await createDefaultSettings(userId);
-        await loadUserData(userId); // Reload data
+        const created = await createDefaultSettings(userId);
+        if (created) {
+          await loadUserData(userId); // Reload data
+        }
         return;
       }
 
@@ -174,36 +176,69 @@ const Admin = () => {
     }
   };
 
-  const createDefaultSettings = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('confectionery_name')
-      .eq('id', userId)
-      .single();
+  const createDefaultSettings = async (userId: string): Promise<boolean> => {
+    try {
+      // Check if profile exists first
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('confectionery_name')
+        .eq('id', userId)
+        .maybeSingle();
 
-    const defaultSettings = {
-      user_id: userId,
-      brand_name: profile?.confectionery_name || 'Minha Confeitaria',
-      show_logo: false,
-      show_name: true,
-      show_hero_logo: false,
-      hero_image_position: 'center',
-      hero_overlay_color: '#000000',
-      hero_overlay_opacity: 0.5,
-      hero_title: 'Bem-vindo à nossa confeitaria',
-      hero_subtitle: 'Doces artesanais feitos com carinho',
-      whatsapp_number: '',
-      whatsapp_message: 'Olá! Gostaria de fazer um pedido:',
-      about_title: 'Sobre Nós',
-      about_text: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
-      show_about: true,
-      extra_info_title: 'Informações Importantes',
-      extra_info_text: 'Faça seu pedido com antecedência!',
-      show_extra_info: true,
-      footer_text: `© ${new Date().getFullYear()} ${profile?.confectionery_name || 'Minha Confeitaria'}. Todos os direitos reservados.`,
-    };
+      if (profileError || !profile) {
+        console.error('Profile not found:', profileError);
+        toast({
+          title: 'Erro de configuração',
+          description: 'Perfil não encontrado. Faça logout e cadastre-se novamente.',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
-    await supabase.from('user_settings').insert(defaultSettings);
+      const defaultSettings = {
+        user_id: userId,
+        brand_name: profile.confectionery_name || 'Minha Confeitaria',
+        show_logo: false,
+        show_name: true,
+        show_hero_logo: false,
+        hero_image_position: 'center',
+        hero_overlay_color: '#000000',
+        hero_overlay_opacity: 0.5,
+        hero_title: 'Bem-vindo à nossa confeitaria',
+        hero_subtitle: 'Doces artesanais feitos com carinho',
+        whatsapp_number: '',
+        whatsapp_message: 'Olá! Gostaria de fazer um pedido:',
+        about_title: 'Sobre Nós',
+        about_text: 'Somos uma confeitaria artesanal dedicada a criar doces deliciosos.',
+        show_about: true,
+        extra_info_title: 'Informações Importantes',
+        extra_info_text: 'Faça seu pedido com antecedência!',
+        show_extra_info: true,
+        footer_text: `© ${new Date().getFullYear()} ${profile.confectionery_name || 'Minha Confeitaria'}. Todos os direitos reservados.`,
+      };
+
+      const { error } = await supabase.from('user_settings').insert(defaultSettings);
+      
+      if (error) {
+        console.error('Error creating settings:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível criar as configurações: ' + error.message,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error('Error in createDefaultSettings:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao criar configurações',
+        variant: 'destructive',
+      });
+      return false;
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
