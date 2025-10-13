@@ -17,53 +17,65 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // 🚀 Atualiza dados locais e no Supabase
   const updateSettings = async (updates: Partial<typeof data.settings>) => {
-    const newSettings = { ...data.settings, ...updates };
-    
-    // Atualiza estado local
+    const newSettings = {
+      ...data.settings,
+      ...updates,
+    };
+
+    // Atualiza no estado local imediatamente
     onDataChange({
       ...data,
-      settings: newSettings
+      settings: newSettings,
     });
-    
-    // Salva no Supabase
-    if (bakeryId) {
-      const { error } = await supabase
-        .from('bakeries')
-        .update({ 
-          settings: newSettings,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', bakeryId);
-        
-      if (error) {
-        console.error('❌ Erro ao salvar configurações:', error);
-        toast({ 
-          title: "Erro ao salvar", 
-          description: "Não foi possível salvar as configurações.",
-          variant: "destructive" 
-        });
-      } else {
-        console.log('✅ Configurações salvas automaticamente');
-      }
+
+    // ⚙️ Atualiza também no Supabase
+    if (!bakeryId) {
+      console.warn("⚠️ Nenhum bakeryId informado — salvamento local apenas.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('bakeries')
+      .update({
+        settings: newSettings,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', bakeryId);
+
+    if (error) {
+      console.error('❌ Erro ao salvar configurações:', error);
+      toast({
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar as configurações no Supabase.',
+        variant: 'destructive',
+      });
+    } else {
+      console.log('✅ Configurações salvas no Supabase com sucesso');
+      toast({
+        title: 'Alterações salvas!',
+        description: 'As configurações foram atualizadas.',
+      });
     }
   };
 
+  // 🧠 Função de alteração de senha
   const handlePasswordChange = () => {
     if (newPassword.length < 6) {
       toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres.",
-        variant: "destructive",
+        title: 'Senha muito curta',
+        description: 'A senha deve ter pelo menos 6 caracteres.',
+        variant: 'destructive',
       });
       return;
     }
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Senhas não coincidem",
-        description: "Por favor, confirme a senha corretamente.",
-        variant: "destructive",
+        title: 'Senhas não coincidem',
+        description: 'Por favor, confirme a senha corretamente.',
+        variant: 'destructive',
       });
       return;
     }
@@ -71,23 +83,24 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
     updateSettings({ adminPassword: newPassword });
     setNewPassword('');
     setConfirmPassword('');
-    
+
     toast({
-      title: "Senha alterada!",
-      description: "Sua nova senha foi salva com sucesso.",
+      title: 'Senha alterada!',
+      description: 'Sua nova senha foi salva com sucesso.',
     });
   };
 
+  // 🔄 Campos de segurança e contato
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold mb-4">Contato</h3>
-        
+
         <div className="space-y-4">
           <div>
             <Label>Número do WhatsApp (com código do país)</Label>
             <Input
-              value={data.settings.whatsappNumber}
+              value={data?.settings?.whatsappNumber || ''}
               onChange={(e) => updateSettings({ whatsappNumber: e.target.value })}
               placeholder="5511999999999"
             />
@@ -99,7 +112,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
           <div>
             <Label>Mensagem de Pedido (WhatsApp)</Label>
             <Textarea
-              value={data.settings.whatsappMessage}
+              value={data?.settings?.whatsappMessage || ''}
               onChange={(e) => updateSettings({ whatsappMessage: e.target.value })}
               placeholder="Olá! Gostaria de confirmar meu pedido:"
               rows={3}
@@ -113,7 +126,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
 
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold mb-4">Segurança</h3>
-        
+
         <div className="space-y-4">
           <div>
             <Label>Nova Senha</Label>
@@ -135,9 +148,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
             />
           </div>
 
-          <Button onClick={handlePasswordChange}>
-            Alterar Senha
-          </Button>
+          <Button onClick={handlePasswordChange}>Alterar Senha</Button>
         </div>
       </div>
     </div>
