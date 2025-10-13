@@ -30,7 +30,7 @@ export function ProductEditor({
   }]);
   const [selectedTags, setSelectedTags] = useState<string[]>(product?.tags || []);
   const handleAddSize = () => {
-    const newId = Date.now().toString();
+    const newId = `size_${Math.random().toString(36).substr(2, 9)}`;
     setSizes([...sizes, {
       id: newId,
       name: '',
@@ -66,14 +66,14 @@ export function ProductEditor({
       return;
     }
     const productData: Product = {
-      id: product?.id || Date.now().toString(),
+      id: product?.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       description: description.trim(),
       image,
       showImage,
       sizes,
       tags: selectedTags,
-      order: product?.order || Date.now()
+      order: product?.order || 0
     };
     onSave(productData);
   };

@@ -70,8 +70,14 @@ export function ProductsTab({ data, onDataChange, sectionId }: ProductsTabProps)
     const reordered = [...sortedProducts];
     [reordered[currentIndex], reordered[newIndex]] = [reordered[newIndex], reordered[currentIndex]];
     
-    const updatedProducts = reordered.map((p, index) => ({ ...p, order: index + 1 }));
-    onDataChange({ ...data, products: updatedProducts });
+    // Update orders for reordered products
+    const reorderedWithNewOrder = reordered.map((p, index) => ({ ...p, order: index }));
+    
+    // Merge with other products not in this section
+    const otherProducts = data.products.filter(p => !currentSection?.productIds.includes(p.id));
+    const allProducts = [...otherProducts, ...reorderedWithNewOrder];
+    
+    onDataChange({ ...data, products: allProducts });
   };
 
   if (editingProduct || isCreating) {

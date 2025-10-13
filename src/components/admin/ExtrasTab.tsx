@@ -57,13 +57,13 @@ export function ExtrasTab({ data, onDataChange }: ExtrasTabProps) {
     }
 
     const extraData: Extra = {
-      id: editingExtra?.id || `e${Date.now()}`,
+      id: editingExtra?.id || `extra_${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       description: description.trim(),
       price,
       image,
       showImage,
-      order: editingExtra?.order || Date.now(),
+      order: editingExtra?.order || data.extras.length,
     };
 
     const updatedExtras = editingExtra
