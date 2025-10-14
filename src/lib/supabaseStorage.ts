@@ -150,6 +150,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
 
     if (data.tags && data.tags.length > 0) {
       const tagsToInsert = data.tags.map((tag) => ({
+        id: tag.id, // Manter o ID original para vínculo com produtos
         bakery_id: bakeryId,
         name: tag.name,
         color: tag.color,
@@ -164,7 +165,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
         console.error('❌ Erro ao inserir tags:', tagsError);
         throw tagsError;
       }
-      console.log(`✅ ${tagsToInsert.length} tags inseridas`);
+      console.log(`✅ ${tagsToInsert.length} tags inseridas com IDs mantidos`);
     }
 
     console.log('✅ Todos os dados salvos com sucesso no Supabase!');

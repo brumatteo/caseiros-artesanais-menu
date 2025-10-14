@@ -88,8 +88,8 @@ export function AdminPanel({
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="theme">Cores</TabsTrigger>
             <TabsTrigger value="sections">Seções</TabsTrigger>
-            <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="settings">Config</TabsTrigger>
           </TabsList>
@@ -107,12 +107,12 @@ export function AdminPanel({
               <SectionsTab data={data} onDataChange={onDataChange} />
             </TabsContent>
 
-            <TabsContent value="products">
-              <ProductsTab data={data} onDataChange={onDataChange} />
-            </TabsContent>
-
             <TabsContent value="tags">
               <TagsTab data={data} onDataChange={onDataChange} />
+            </TabsContent>
+
+            <TabsContent value="products">
+              <ProductsTab data={data} onDataChange={onDataChange} />
             </TabsContent>
 
             <TabsContent value="info">

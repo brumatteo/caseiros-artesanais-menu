@@ -27,18 +27,19 @@ export function TagsTab({ data, onDataChange }: TagsTabProps) {
   const [editColor, setEditColor] = useState('');
   const [editEmoji, setEditEmoji] = useState('');
 
-  const handleAddDefaultTags = () => {
-    const existingNames = new Set(data.tags.map(t => t.name));
-    const newTags = DEFAULT_TAGS.filter(t => !existingNames.has(t.name)).map(t => ({
-      ...t,
-      id: crypto.randomUUID(),
-    }));
-
-    onDataChange({
-      ...data,
-      tags: [...data.tags, ...newTags],
-    });
-  };
+  // Adicionar tags sugeridas automaticamente se ainda não existirem
+  useState(() => {
+    if (data.tags.length === 0) {
+      const defaultTags = DEFAULT_TAGS.map(t => ({
+        ...t,
+        id: crypto.randomUUID(),
+      }));
+      onDataChange({
+        ...data,
+        tags: defaultTags,
+      });
+    }
+  });
 
   const handleAddCustomTag = () => {
     const newTag: Tag = {
@@ -100,18 +101,13 @@ export function TagsTab({ data, onDataChange }: TagsTabProps) {
         <div>
           <h3 className="text-lg font-semibold">Tags de Produtos</h3>
           <p className="text-sm text-muted-foreground">
-            Adicione tags para destacar produtos especiais
+            Tags sugeridas já estão ativas. Você pode editá-las ou criar novas.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleAddDefaultTags} variant="outline" size="sm">
-            Adicionar Tags Sugeridas
-          </Button>
-          <Button onClick={handleAddCustomTag} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Tag Personalizada
-          </Button>
-        </div>
+        <Button onClick={handleAddCustomTag} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Tag Personalizada
+        </Button>
       </div>
 
       {data.tags.length === 0 ? (

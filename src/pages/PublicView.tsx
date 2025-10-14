@@ -240,23 +240,23 @@ export default function PublicView() {
         }
 
         {data.settings.showAbout && (
-          <section className="mb-28 bg-card/50 backdrop-blur-sm rounded-2xl p-10 max-w-6xl mx-auto transition-all duration-300">
-            <h2 className="text-3xl font-display font-bold text-center mb-10">
+          <section className="mb-28 bg-card/50 backdrop-blur-sm rounded-2xl p-12 max-w-7xl mx-auto transition-all duration-300">
+            <h2 className="text-3xl font-display font-bold text-center mb-12">
               {data.settings.aboutTitle}
             </h2>
-            <div className="flex flex-col md:flex-row gap-10 items-center">
+            <div className="flex flex-col md:flex-row gap-12 items-center">
               {data.settings.showAboutImage !== false && data.settings.aboutImage && (
-                <div className="flex-shrink-0 w-full md:w-5/12">
+                <div className="flex-shrink-0 w-full md:w-[45%]">
                   <img 
                     src={data.settings.aboutImage} 
                     alt={data.settings.aboutTitle || 'Sobre'} 
                     className="w-full rounded-xl shadow-xl object-cover transition-transform duration-300 hover:scale-[1.02]"
-                    style={{ aspectRatio: '4/3' }}
+                    style={{ aspectRatio: '16/10' }}
                   />
                 </div>
               )}
-              <div className="flex-1 flex flex-col justify-center">
-                <p className="text-lg whitespace-pre-wrap leading-loose text-foreground/90">{data.settings.aboutText}</p>
+              <div className="flex-1 flex flex-col justify-center px-4">
+                <p className="text-lg whitespace-pre-wrap leading-[1.9] text-foreground/90">{data.settings.aboutText}</p>
               </div>
             </div>
           </section>
