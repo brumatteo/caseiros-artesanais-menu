@@ -19,14 +19,14 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
   const shouldShowImage = product.showImage !== false && product.image;
 
   return (
-    <div className="bg-card rounded-xl overflow-hidden shadow-soft hover-lift">
+    <div className="bg-card rounded-xl overflow-hidden shadow-soft transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       {/* Image */}
       {shouldShowImage && (
         <div className="relative bg-background overflow-hidden" style={{ aspectRatio: '1 / 1.2' }}>
           <img 
             src={product.image} 
             alt={product.name} 
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
           />
           
           {/* Tags */}
@@ -35,7 +35,7 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
               {productTags.map(tag => (
                 <span 
                   key={tag.id}
-                  className="px-3 py-1 rounded-full text-xs font-medium text-white shadow-md"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold text-white shadow-lg backdrop-blur-sm bg-opacity-95 border border-white/20 transition-transform duration-200 hover:scale-105"
                   style={{ backgroundColor: tag.color }}
                 >
                   {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
@@ -97,7 +97,7 @@ export function ProductCard({ product, tags, onAddToCart }: ProductCardProps) {
             quantity: 1,
             type: 'product'
           })}
-          className="w-full"
+          className="w-full transition-all duration-200"
           size="lg"
         >
           <Plus className="h-4 w-4 mr-2" />

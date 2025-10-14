@@ -64,6 +64,16 @@ export default function PublicView() {
           console.error('Error fetching sections:', sectionsError);
         }
 
+        // Fetch tags for this bakery
+        const { data: tags, error: tagsError } = await supabase
+          .from('tags')
+          .select('*')
+          .eq('bakery_id', bakery.id);
+
+        if (tagsError) {
+          console.error('Error fetching tags:', tagsError);
+        }
+
         // Transform database data to AppData format - SEM DEFAULTS
         const productsData: Product[] = (products || []).map((p) => ({
           id: p.id,
@@ -111,7 +121,12 @@ export default function PublicView() {
             productIds: (s.product_ids as string[]) || [],
           })),
           extras: [],
-          tags: [],
+          tags: (tags || []).map((t) => ({
+            id: t.id,
+            name: t.name,
+            color: t.color,
+            emoji: t.emoji || '',
+          })),
         };
 
         console.log('📊 Dados carregados para PublicView:', {
@@ -180,7 +195,7 @@ export default function PublicView() {
         {data.sections
           .filter(section => section.visible)
           .sort((a, b) => a.order - b.order)
-          .map((section) => {
+          .map((section, index) => {
             const sectionProducts = data.products.filter(p => 
               section.productIds.includes(p.id)
             );
@@ -199,20 +214,25 @@ export default function PublicView() {
               return null;
             }
             
+            // Alternar fundo sutil entre seções
+            const bgClass = index % 2 === 0 ? 'bg-background' : 'bg-muted/30';
+            
             return (
-              <section key={section.id} id={`section-${section.id}`} className="mb-20">
-                <h2 className="text-3xl font-display font-bold text-center mb-8">
-                  {section.name}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {sectionProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      tags={data.tags}
-                      onAddToCart={handleAddToCart}
-                    />
-                  ))}
+              <section key={section.id} id={`section-${section.id}`} className={`py-12 -mx-4 px-4 mb-8 transition-colors duration-300 ${bgClass}`}>
+                <div className="container mx-auto">
+                  <h2 className="text-3xl font-display font-bold text-center mb-8">
+                    {section.name}
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sectionProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        tags={data.tags}
+                        onAddToCart={handleAddToCart}
+                      />
+                    ))}
+                  </div>
                 </div>
               </section>
             );
@@ -220,33 +240,34 @@ export default function PublicView() {
         }
 
         {data.settings.showAbout && (
-          <section className="mb-20 bg-card rounded-lg p-8 max-w-5xl mx-auto">
-            <h2 className="text-3xl font-display font-bold text-center mb-8">
+          <section className="mb-28 bg-card/50 backdrop-blur-sm rounded-2xl p-10 max-w-6xl mx-auto transition-all duration-300">
+            <h2 className="text-3xl font-display font-bold text-center mb-10">
               {data.settings.aboutTitle}
             </h2>
-            <div className="flex flex-col md:flex-row gap-8 items-start">
+            <div className="flex flex-col md:flex-row gap-10 items-center">
               {data.settings.showAboutImage !== false && data.settings.aboutImage && (
-                <div className="flex-shrink-0 w-full md:w-1/2 lg:w-2/5">
+                <div className="flex-shrink-0 w-full md:w-5/12">
                   <img 
                     src={data.settings.aboutImage} 
                     alt={data.settings.aboutTitle || 'Sobre'} 
-                    className="w-full rounded-lg shadow-lg object-cover"
+                    className="w-full rounded-xl shadow-xl object-cover transition-transform duration-300 hover:scale-[1.02]"
+                    style={{ aspectRatio: '4/3' }}
                   />
                 </div>
               )}
-              <div className="flex-1 flex flex-col justify-start">
-                <p className="text-lg whitespace-pre-wrap leading-relaxed">{data.settings.aboutText}</p>
+              <div className="flex-1 flex flex-col justify-center">
+                <p className="text-lg whitespace-pre-wrap leading-loose text-foreground/90">{data.settings.aboutText}</p>
               </div>
             </div>
           </section>
         )}
 
         {data.settings.showExtraInfo && (
-          <section className="mb-20 bg-muted rounded-lg p-8">
-            <h2 className="text-2xl font-display font-bold text-center mb-4">
+          <section className="mb-20 bg-muted/40 backdrop-blur-sm rounded-xl p-10 transition-all duration-300">
+            <h2 className="text-2xl font-display font-bold text-center mb-6">
               {data.settings.extraInfoTitle}
             </h2>
-            <p className="text-center text-muted-foreground whitespace-pre-line">
+            <p className="text-center text-muted-foreground whitespace-pre-line leading-relaxed max-w-3xl mx-auto">
               {data.settings.extraInfoText}
             </p>
           </section>
