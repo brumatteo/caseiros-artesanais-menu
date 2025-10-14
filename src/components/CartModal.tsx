@@ -67,6 +67,14 @@ export function CartModal({
 
     const phone = whatsappNumber.replace(/\D/g, '');
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`;
+    
+    console.log('🔍 DEBUG WHATSAPP URL:', {
+      numeroOriginal: whatsappNumber,
+      numeroLimpo: phone,
+      urlCompleta: url,
+      dominioCorreto: url.includes('wa.me')
+    });
+    
     window.open(url, '_blank');
     onClose();
   };
