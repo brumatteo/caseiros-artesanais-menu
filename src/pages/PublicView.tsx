@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { ProductCard } from '@/components/ProductCard';
-import { ExtraCard } from '@/components/ExtraCard';
 import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';

@@ -7,7 +7,6 @@ import { AppData } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { BrandingTab } from './admin/BrandingTab';
 import { ProductsTab } from './admin/ProductsTab';
-import { ExtrasTab } from './admin/ExtrasTab';
 import { InfoTab } from './admin/InfoTab';
 import { ThemeTab } from './admin/ThemeTab';
 import { SectionsTab } from './admin/SectionsTab';
@@ -84,12 +83,11 @@ export function AdminPanel({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="branding">Marca</TabsTrigger>
             <TabsTrigger value="theme">Cores</TabsTrigger>
             <TabsTrigger value="sections">Seções</TabsTrigger>
             <TabsTrigger value="products">Produtos</TabsTrigger>
-            <TabsTrigger value="extras">Coberturas</TabsTrigger>
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="settings">Config</TabsTrigger>
           </TabsList>
@@ -109,10 +107,6 @@ export function AdminPanel({
 
             <TabsContent value="products">
               <ProductsTab data={data} onDataChange={onDataChange} />
-            </TabsContent>
-
-            <TabsContent value="extras">
-              <ExtrasTab data={data} onDataChange={onDataChange} />
             </TabsContent>
 
             <TabsContent value="info">
