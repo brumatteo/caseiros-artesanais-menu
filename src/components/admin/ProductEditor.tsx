@@ -30,7 +30,7 @@ export function ProductEditor({
   }]);
   const [selectedTags, setSelectedTags] = useState<string[]>(product?.tags || []);
   const handleAddSize = () => {
-    const newId = `size_${Math.random().toString(36).substr(2, 9)}`;
+    const newId = crypto.randomUUID();
     setSizes([...sizes, {
       id: newId,
       name: '',
@@ -66,7 +66,7 @@ export function ProductEditor({
       return;
     }
     const productData: Product = {
-      id: product?.id || `prod_${Math.random().toString(36).substr(2, 9)}`,
+      id: product?.id || crypto.randomUUID(),
       name: name.trim(),
       description: description.trim(),
       image,

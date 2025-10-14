@@ -47,6 +47,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
 
     if (data.products && data.products.length > 0) {
       const productsToInsert = data.products.map((product) => ({
+        id: product.id, // Manter o ID original para vínculo com seções
         bakery_id: bakeryId,
         name: product.name,
         price: product.sizes[0]?.price || 0,
@@ -66,7 +67,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
         console.error('❌ Erro ao inserir produtos:', productsError);
         throw productsError;
       }
-      console.log(`✅ ${productsToInsert.length} produtos inseridos`);
+      console.log(`✅ ${productsToInsert.length} produtos inseridos com IDs mantidos`);
     }
 
     // 3. Deletar extras antigos e inserir novos
@@ -116,6 +117,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
 
     if (data.sections && data.sections.length > 0) {
       const sectionsToInsert = data.sections.map((section) => ({
+        id: section.id, // Manter o ID original da seção
         bakery_id: bakeryId,
         name: section.name,
         visible: section.visible !== false,
@@ -131,7 +133,7 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
         console.error('❌ Erro ao inserir sections:', sectionsError);
         throw sectionsError;
       }
-      console.log(`✅ ${sectionsToInsert.length} sections inseridas`);
+      console.log(`✅ ${sectionsToInsert.length} sections inseridas com IDs e vínculos mantidos`);
     }
 
     // 5. Deletar tags antigas e inserir novas

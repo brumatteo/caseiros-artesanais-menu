@@ -175,6 +175,13 @@ export default function PublicView() {
               section.productIds.includes(p.id)
             );
             
+            console.log(`🔍 Seção "${section.name}":`, {
+              sectionId: section.id,
+              productIds: section.productIds,
+              foundProducts: sectionProducts.length,
+              allProductIds: data.products.map(p => p.id)
+            });
+            
             // Só renderizar seção se tiver produtos
             if (sectionProducts.length === 0) return null;
             

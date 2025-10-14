@@ -18,7 +18,7 @@ export function SectionsTab({ data, onDataChange }: SectionsTabProps) {
 
   const handleAddSection = () => {
     const newSection: ProductSection = {
-      id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: crypto.randomUUID(),
       name: 'Nova Seção',
       visible: true,
       order: data.sections.length,
