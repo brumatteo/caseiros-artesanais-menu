@@ -185,7 +185,7 @@ export default function PublicView() {
             if (sectionProducts.length === 0) return null;
             
             return (
-              <section key={section.id} id={`section-${section.id}`} className="mb-16">
+              <section key={section.id} id={`section-${section.id}`} className="mb-20">
                 <h2 className="text-3xl font-display font-bold text-center mb-8">
                   {section.name}
                 </h2>
@@ -205,11 +205,11 @@ export default function PublicView() {
         }
 
         {data.settings.showAbout && (
-          <section className="mb-16 bg-card rounded-lg p-8">
+          <section className="mb-20 bg-card rounded-lg p-8">
             <h2 className="text-3xl font-display font-bold text-center mb-8">
               {data.settings.aboutTitle}
             </h2>
-            <div className="flex flex-col md:flex-row gap-8 items-center">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
               {data.settings.showAboutImage !== false && data.settings.aboutImage && (
                 <div className="flex-shrink-0 w-full md:w-1/2 lg:w-2/5">
                   <img 
@@ -227,7 +227,7 @@ export default function PublicView() {
         )}
 
         {data.settings.showExtraInfo && (
-          <section className="mb-16 bg-muted rounded-lg p-8">
+          <section className="mb-20 bg-muted rounded-lg p-8">
             <h2 className="text-2xl font-display font-bold text-center mb-4">
               {data.settings.extraInfoTitle}
             </h2>
@@ -240,6 +240,17 @@ export default function PublicView() {
 
       <Footer settings={data.settings} />
       <FloatingWhatsAppButton settings={data.settings} />
+      
+      {/* Floating Cart Button */}
+      {cart.length > 0 && (
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-3 shadow-lg flex items-center gap-2 font-medium transition-all animate-fade-in"
+        >
+          🛒 Finalizar Pedido ({cart.length})
+        </button>
+      )}
+      
       <CartModal
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
