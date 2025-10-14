@@ -271,6 +271,7 @@ export default function PublicView() {
         cart={cart}
         onUpdateCart={setCart}
         whatsappNumber={data.settings.whatsappNumber}
+        whatsappMessage={data.settings.whatsappMessage}
       />
     </div>
   );

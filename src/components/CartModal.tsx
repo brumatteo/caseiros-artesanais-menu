@@ -12,6 +12,7 @@ interface CartModalProps {
   cart: CartItem[];
   onUpdateCart: (cart: CartItem[]) => void;
   whatsappNumber: string;
+  whatsappMessage: string;
 }
 
 export function CartModal({ 
@@ -19,7 +20,8 @@ export function CartModal({
   onClose, 
   cart, 
   onUpdateCart,
-  whatsappNumber 
+  whatsappNumber,
+  whatsappMessage 
 }: CartModalProps) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -47,30 +49,34 @@ export function CartModal({
       return;
     }
     
-    // Build WhatsApp message
-    let whatsappMessage = `*Novo Pedido*\n\n`;
-    whatsappMessage += `👤 *Nome:* ${customerName}\n`;
-    whatsappMessage += `📱 *Telefone:* ${customerPhone}\n\n`;
-    whatsappMessage += `*Itens:*\n`;
+    // Build WhatsApp message using configured message
+    const baseMessage = whatsappMessage || 'Olá! Gostaria de confirmar meu pedido:';
+    
+    let finalMessage = `${baseMessage}\n\n`;
+    finalMessage += `👤 *Nome:* ${customerName}\n`;
+    finalMessage += `📱 *Telefone:* ${customerPhone}\n\n`;
+    finalMessage += `*Itens:*\n`;
     
     cart.forEach((item, index) => {
-      whatsappMessage += `${index + 1}. ${item.productName} - ${item.sizeName}\n`;
-      whatsappMessage += `   Quantidade: ${item.quantity}x\n`;
-      whatsappMessage += `   Subtotal: R$ ${(item.price * item.quantity).toFixed(2)}\n\n`;
+      finalMessage += `${index + 1}. ${item.productName} - ${item.sizeName}\n`;
+      finalMessage += `   Quantidade: ${item.quantity}x\n`;
+      finalMessage += `   Subtotal: R$ ${(item.price * item.quantity).toFixed(2)}\n\n`;
     });
     
-    whatsappMessage += `*Total: R$ ${total.toFixed(2)}*\n`;
+    finalMessage += `*Total: R$ ${total.toFixed(2)}*\n`;
     
     if (message.trim()) {
-      whatsappMessage += `\n📝 *Observações:* ${message}`;
+      finalMessage += `\n📝 *Observações:* ${message}`;
     }
 
     const phone = whatsappNumber.replace(/\D/g, '');
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(finalMessage)}`;
     
     console.log('🔍 DEBUG WHATSAPP URL:', {
       numeroOriginal: whatsappNumber,
       numeroLimpo: phone,
+      mensagemBase: baseMessage,
+      mensagemCompleta: finalMessage,
       urlCompleta: url,
       dominioCorreto: url.includes('wa.me')
     });
