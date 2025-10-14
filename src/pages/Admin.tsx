@@ -29,39 +29,74 @@ const Admin = () => {
   useThemeColors(data?.settings || {} as any);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Check authentication status
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        await loadUserData(session.user.id);
-      } else {
-        setIsCheckingAuth(false);
-        // Se não há usuário e há slug, redirecionar para login
-        if (slug) {
-          navigate('/admin');
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // Se houver erro de token inválido/expirado, limpar sessão
+        if (error) {
+          console.warn('⚠️ Erro ao obter sessão:', error.message);
+          await supabase.auth.signOut();
+          if (isMounted) {
+            setUser(null);
+            setIsCheckingAuth(false);
+          }
+          return;
+        }
+        
+        if (!isMounted) return;
+        
+        setUser(session?.user || null);
+        
+        if (session?.user) {
+          await loadUserData(session.user.id);
+        } else {
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar autenticação:', error);
+        if (isMounted) {
+          setUser(null);
+          setIsCheckingAuth(false);
         }
       }
-      
-      setIsCheckingAuth(false);
     };
 
     checkAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null);
+      console.log('🔄 Auth state changed:', event);
       
-      if (session?.user) {
-        await loadUserData(session.user.id);
-      } else {
+      if (!isMounted) return;
+      
+      // Limpar dados ao fazer logout
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
         setData(null);
         setHasAccess(false);
+        setIsCheckingAuth(false);
+        return;
+      }
+      
+      setUser(session?.user || null);
+      
+      if (session?.user && event === 'SIGNED_IN') {
+        await loadUserData(session.user.id);
+      } else if (!session?.user) {
+        setData(null);
+        setHasAccess(false);
+        setIsCheckingAuth(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [slug, navigate]);
 
   const loadUserData = async (userId: string) => {
@@ -141,8 +176,8 @@ const Admin = () => {
         // Redirecionar para /:slug/admin apenas se não estamos já nessa rota
         if (window.location.pathname !== `/${bakery.slug}/admin`) {
           navigate(`/${bakery.slug}/admin`, { replace: true });
+          return;
         }
-        return;
       }
 
       console.log('✅ Bakery encontrada:', bakery);
@@ -188,8 +223,12 @@ const Admin = () => {
         };
         setData(defaultAppData);
       }
+      
+      setIsCheckingAuth(false);
     } catch (error) {
       console.error('❌ Erro ao carregar dados do usuário:', error);
+      setIsCheckingAuth(false);
+      setHasAccess(false);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar seus dados',
@@ -230,12 +269,32 @@ const Admin = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: 'Sessão encerrada',
-      description: 'Você saiu do painel administrativo.',
-    });
-    navigate('/');
+    try {
+      // Limpar completamente a sessão do Supabase
+      await supabase.auth.signOut();
+      
+      // Limpar estados locais
+      setUser(null);
+      setData(null);
+      setHasAccess(false);
+      setUserSlug('');
+      setBakeryId('');
+      
+      toast({
+        title: 'Sessão encerrada',
+        description: 'Você saiu do painel administrativo.',
+      });
+      
+      // Redirecionar para login
+      navigate('/admin', { replace: true });
+    } catch (error) {
+      console.error('❌ Erro ao fazer logout:', error);
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao sair. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDataChange = async (newData: AppData) => {
