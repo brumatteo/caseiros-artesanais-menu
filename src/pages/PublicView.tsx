@@ -114,6 +114,17 @@ export default function PublicView() {
           tags: [],
         };
 
+        console.log('📊 Dados carregados para PublicView:', {
+          bakeryName: bakery.confectionery_name,
+          slug: bakery.slug,
+          productsCount: productsData.length,
+          sectionsCount: (sections || []).length,
+          visibleSections: (sections || []).filter(s => s.visible !== false).length,
+          settings: appData.settings,
+          sections: appData.sections,
+          products: appData.products
+        });
+
         setData(appData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -174,15 +185,19 @@ export default function PublicView() {
               section.productIds.includes(p.id)
             );
             
-            console.log(`🔍 Seção "${section.name}":`, {
+            console.log(`🔍 Renderizando seção "${section.name}":`, {
               sectionId: section.id,
               productIds: section.productIds,
               foundProducts: sectionProducts.length,
+              productNames: sectionProducts.map(p => p.name),
               allProductIds: data.products.map(p => p.id)
             });
             
             // Só renderizar seção se tiver produtos
-            if (sectionProducts.length === 0) return null;
+            if (sectionProducts.length === 0) {
+              console.warn(`⚠️ Seção "${section.name}" não tem produtos vinculados`);
+              return null;
+            }
             
             return (
               <section key={section.id} id={`section-${section.id}`} className="mb-20">
@@ -205,7 +220,7 @@ export default function PublicView() {
         }
 
         {data.settings.showAbout && (
-          <section className="mb-20 bg-card rounded-lg p-8">
+          <section className="mb-20 bg-card rounded-lg p-8 max-w-5xl mx-auto">
             <h2 className="text-3xl font-display font-bold text-center mb-8">
               {data.settings.aboutTitle}
             </h2>
@@ -219,7 +234,7 @@ export default function PublicView() {
                   />
                 </div>
               )}
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col justify-start">
                 <p className="text-lg whitespace-pre-wrap leading-relaxed">{data.settings.aboutText}</p>
               </div>
             </div>
