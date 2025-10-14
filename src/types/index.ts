@@ -78,12 +78,9 @@ export interface SiteSettings {
   footerPhone?: string;
   instagramUrl?: string;
   adminPassword: string;
-  // Theme colors
-  colorPrimary?: string;
-  colorSecondary?: string;
-  colorAccent?: string;
-  colorBackground?: string;
-  colorForeground?: string;
+  // Theme colors (apenas 2 editáveis)
+  colorBackgroundRosa?: string;
+  colorButtonPrimary?: string;
 }
 
 export interface AppData {

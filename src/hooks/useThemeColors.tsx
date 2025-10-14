@@ -37,26 +37,14 @@ export function useThemeColors(settings: SiteSettings) {
   useEffect(() => {
     const root = document.documentElement;
     
-    if (settings.colorPrimary) {
-      root.style.setProperty('--primary', hexToHSL(settings.colorPrimary));
+    // Aplica cor de fundo rosa claro
+    if (settings.colorBackgroundRosa) {
+      root.style.setProperty('--background', hexToHSL(settings.colorBackgroundRosa));
     }
     
-    if (settings.colorSecondary) {
-      root.style.setProperty('--secondary', hexToHSL(settings.colorSecondary));
+    // Aplica cor dos botões primários
+    if (settings.colorButtonPrimary) {
+      root.style.setProperty('--primary', hexToHSL(settings.colorButtonPrimary));
     }
-    
-    if (settings.colorAccent) {
-      root.style.setProperty('--accent', hexToHSL(settings.colorAccent));
-    }
-    
-    if (settings.colorBackground) {
-      root.style.setProperty('--background', hexToHSL(settings.colorBackground));
-    }
-    
-    if (settings.colorForeground) {
-      root.style.setProperty('--foreground', hexToHSL(settings.colorForeground));
-      root.style.setProperty('--card-foreground', hexToHSL(settings.colorForeground));
-      root.style.setProperty('--popover-foreground', hexToHSL(settings.colorForeground));
-    }
-  }, [settings.colorPrimary, settings.colorSecondary, settings.colorAccent, settings.colorBackground, settings.colorForeground]);
+  }, [settings.colorBackgroundRosa, settings.colorButtonPrimary]);
 }

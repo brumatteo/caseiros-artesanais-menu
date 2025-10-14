@@ -29,8 +29,8 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       brandName: data.settings.brandName,
       logoImage: data.settings.logoImage ? '✅ tem logo' : '❌ sem logo',
       heroImage: data.settings.heroImage ? '✅ tem hero' : '❌ sem hero',
-      colorPrimary: data.settings.colorPrimary || 'padrão',
-      colorSecondary: data.settings.colorSecondary || 'padrão',
+      colorBackgroundRosa: data.settings.colorBackgroundRosa || 'padrão',
+      colorButtonPrimary: data.settings.colorButtonPrimary || 'padrão',
     });
 
     // 2. Deletar produtos antigos e inserir novos
