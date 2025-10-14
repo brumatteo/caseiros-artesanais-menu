@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { loadDataFromSupabase } from '@/lib/supabaseStorage';
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
   const [user, setUser] = useState<User | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +23,7 @@ const Admin = () => {
   const [data, setData] = useState<AppData | null>(null);
   const [userSlug, setUserSlug] = useState<string>('');
   const [bakeryId, setBakeryId] = useState<string>('');
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
 
   // Apply theme colors - call hook at top level
   useThemeColors(data?.settings || {} as any);
@@ -57,38 +59,79 @@ const Admin = () => {
 
   const loadUserData = async (userId: string) => {
     try {
-      console.log('📥 Carregando dados do usuário...', { userId });
+      console.log('📥 Carregando dados do usuário...', { userId, slugFromUrl: slug });
       
-      // Fetch bakery info
-      const { data: bakery, error: bakeryError } = await supabase
-        .from('bakeries')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Se há slug na URL, verificar se o usuário tem acesso a essa confeitaria
+      let bakery;
+      if (slug) {
+        const { data: bakeryData, error: bakeryError } = await supabase
+          .from('bakeries')
+          .select('*')
+          .eq('slug', slug)
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      if (bakeryError) {
-        console.error('❌ Erro ao buscar bakery:', bakeryError);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar dados da confeitaria',
-          variant: 'destructive',
-        });
-        return;
-      }
+        if (bakeryError) {
+          console.error('❌ Erro ao buscar bakery:', bakeryError);
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar dados da confeitaria',
+            variant: 'destructive',
+          });
+          return;
+        }
 
-      if (!bakery) {
-        console.warn('⚠️ Confeitaria não encontrada para o usuário');
-        toast({
-          title: 'Confeitaria não encontrada',
-          description: 'Por favor, complete o cadastro',
-          variant: 'destructive',
-        });
+        if (!bakeryData) {
+          console.warn('⚠️ Acesso negado: usuário não é dono desta confeitaria');
+          toast({
+            title: 'Acesso negado',
+            description: 'Você não tem permissão para acessar este painel',
+            variant: 'destructive',
+          });
+          setHasAccess(false);
+          navigate('/');
+          return;
+        }
+        
+        bakery = bakeryData;
+      } else {
+        // Se não há slug na URL, buscar a confeitaria do usuário
+        const { data: bakeryData, error: bakeryError } = await supabase
+          .from('bakeries')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (bakeryError) {
+          console.error('❌ Erro ao buscar bakery:', bakeryError);
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar dados da confeitaria',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        if (!bakeryData) {
+          console.warn('⚠️ Confeitaria não encontrada para o usuário');
+          toast({
+            title: 'Confeitaria não encontrada',
+            description: 'Por favor, complete o cadastro',
+            variant: 'destructive',
+          });
+          return;
+        }
+        
+        bakery = bakeryData;
+        // Redirecionar para /:slug/admin
+        navigate(`/${bakery.slug}/admin`, { replace: true });
         return;
       }
 
       console.log('✅ Bakery encontrada:', bakery);
       setUserSlug(bakery.slug);
       setBakeryId(bakery.id);
+      setHasAccess(true);
 
       // Carregar dados completos do Supabase
       const appData = await loadDataFromSupabase(bakery.id);
@@ -183,7 +226,11 @@ const Admin = () => {
   };
 
   const handleCloseAdmin = () => {
-    navigate('/');
+    if (userSlug) {
+      navigate(`/${userSlug}`);
+    } else {
+      navigate('/');
+    }
   };
 
   if (isCheckingAuth) {
@@ -262,7 +309,7 @@ const Admin = () => {
     );
   }
 
-  if (!data) {
+  if (!data || !hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
