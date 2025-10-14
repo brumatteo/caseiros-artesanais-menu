@@ -10,6 +10,7 @@ import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';
 import { AppData, Product, CartItem } from '@/types';
 import { Loader2 } from 'lucide-react';
+import { useThemeColors } from '@/hooks/useThemeColors';
 
 export default function PublicView() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,6 +19,9 @@ export default function PublicView() {
   const [isLoading, setIsLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Apply theme colors
+  useThemeColors(data?.settings || {} as any);
 
   useEffect(() => {
     if (!slug) {
