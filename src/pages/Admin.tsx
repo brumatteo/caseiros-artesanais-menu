@@ -95,7 +95,7 @@ const Admin = () => {
 
     // Listener para quando a aba recupera o foco (usuário volta de "Ver meu site")
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible' && isMounted) {
+      if (document.visibilityState === 'visible' && isMounted && user) {
         console.log('👀 Aba voltou a ter foco, verificando sessão...');
         
         try {
@@ -110,11 +110,18 @@ const Admin = () => {
             return;
           }
           
-          // Se há sessão mas não há dados carregados, recarregar
-          if (session?.user && (!data || !hasAccess)) {
-            console.log('🔄 Restaurando dados do painel...');
-            setIsCheckingAuth(true);
-            await loadUserData(session.user.id);
+          // Só recarregar se havia dados antes (usuário já estava autenticado)
+          if (session?.user && hasAccess && data) {
+            console.log('🔄 Verificando integridade dos dados do painel...');
+            // Apenas revalida, não força recarga completa
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession) {
+              console.log('⚠️ Sessão inválida detectada, solicitando novo login');
+              setUser(null);
+              setData(null);
+              setHasAccess(false);
+              setIsCheckingAuth(false);
+            }
           }
         } catch (error) {
           console.error('❌ Erro ao verificar sessão após voltar à aba:', error);
@@ -135,30 +142,42 @@ const Admin = () => {
     try {
       console.log('📥 Carregando dados do usuário...', { userId, slugFromUrl: slug });
       
-      // Se há slug na URL, verificar se o usuário tem acesso a essa confeitaria
-      let bakery;
+      // Primeiro, buscar a confeitaria do usuário
+      const { data: userBakeryData, error: userBakeryError } = await supabase
+        .from('bakeries')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (userBakeryError) {
+        console.error('❌ Erro ao buscar bakery do usuário:', userBakeryError);
+        setIsCheckingAuth(false);
+        setHasAccess(false);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar dados da confeitaria',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!userBakeryData) {
+        console.warn('⚠️ Confeitaria não encontrada para o usuário');
+        setIsCheckingAuth(false);
+        setHasAccess(false);
+        toast({
+          title: 'Confeitaria não encontrada',
+          description: 'Por favor, complete o cadastro',
+          variant: 'destructive',
+        });
+        navigate('/');
+        return;
+      }
+
+      // Se há slug na URL, verificar se corresponde à confeitaria do usuário
       if (slug) {
-        const { data: bakeryData, error: bakeryError } = await supabase
-          .from('bakeries')
-          .select('*')
-          .eq('slug', slug)
-          .eq('user_id', userId)
-          .maybeSingle();
-
-        if (bakeryError) {
-          console.error('❌ Erro ao buscar bakery:', bakeryError);
-          setIsCheckingAuth(false);
-          setHasAccess(false);
-          toast({
-            title: 'Erro',
-            description: 'Não foi possível carregar dados da confeitaria',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        if (!bakeryData) {
-          console.warn('⚠️ Acesso negado: usuário não é dono desta confeitaria');
+        if (slug !== userBakeryData.slug) {
+          console.warn('⚠️ Acesso negado: slug não corresponde à confeitaria do usuário');
           setIsCheckingAuth(false);
           setHasAccess(false);
           toast({
@@ -166,51 +185,21 @@ const Admin = () => {
             description: 'Você não tem permissão para acessar este painel',
             variant: 'destructive',
           });
-          navigate('/');
+          // Fazer logout e redirecionar
+          await supabase.auth.signOut();
+          setUser(null);
+          setData(null);
+          navigate('/admin', { replace: true });
           return;
         }
-        
-        bakery = bakeryData;
       } else {
-        // Se não há slug na URL, buscar a confeitaria do usuário
-        const { data: bakeryData, error: bakeryError } = await supabase
-          .from('bakeries')
-          .select('*')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-        if (bakeryError) {
-          console.error('❌ Erro ao buscar bakery:', bakeryError);
-          setIsCheckingAuth(false);
-          setHasAccess(false);
-          toast({
-            title: 'Erro',
-            description: 'Não foi possível carregar dados da confeitaria',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        if (!bakeryData) {
-          console.warn('⚠️ Confeitaria não encontrada para o usuário');
-          setIsCheckingAuth(false);
-          setHasAccess(false);
-          toast({
-            title: 'Confeitaria não encontrada',
-            description: 'Por favor, complete o cadastro',
-            variant: 'destructive',
-          });
-          navigate('/');
-          return;
-        }
-        
-        bakery = bakeryData;
-        // Redirecionar para /:slug/admin apenas se não estamos já nessa rota
-        if (window.location.pathname !== `/${bakery.slug}/admin`) {
-          navigate(`/${bakery.slug}/admin`, { replace: true });
-          return;
-        }
+        // Se não há slug na URL, redirecionar para o slug correto
+        console.log('🔄 Redirecionando para:', `/${userBakeryData.slug}/admin`);
+        navigate(`/${userBakeryData.slug}/admin`, { replace: true });
+        return;
       }
+
+      const bakery = userBakeryData;
 
       console.log('✅ Bakery encontrada:', bakery);
       setUserSlug(bakery.slug);
