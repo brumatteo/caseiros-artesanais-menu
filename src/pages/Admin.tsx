@@ -84,7 +84,8 @@ const Admin = () => {
       
       setUser(session?.user || null);
       
-      if (session?.user && event === 'SIGNED_IN') {
+      // Carregar dados para SIGNED_IN, TOKEN_REFRESHED e INITIAL_SESSION
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
         await loadUserData(session.user.id);
       } else if (!session?.user) {
         setData(null);
@@ -95,7 +96,7 @@ const Admin = () => {
 
     // Listener para quando a aba recupera o foco (usuário volta de "Ver meu site")
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible' && isMounted && user) {
+      if (document.visibilityState === 'visible' && isMounted) {
         console.log('👀 Aba voltou a ter foco, verificando sessão...');
         
         try {
@@ -110,18 +111,11 @@ const Admin = () => {
             return;
           }
           
-          // Só recarregar se havia dados antes (usuário já estava autenticado)
-          if (session?.user && hasAccess && data) {
-            console.log('🔄 Verificando integridade dos dados do painel...');
-            // Apenas revalida, não força recarga completa
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (!currentSession) {
-              console.log('⚠️ Sessão inválida detectada, solicitando novo login');
-              setUser(null);
-              setData(null);
-              setHasAccess(false);
-              setIsCheckingAuth(false);
-            }
+          // Se há sessão válida mas não há dados ou acesso, recarregar
+          if (session?.user && (!data || !hasAccess)) {
+            console.log('🔄 Sessão válida detectada, recarregando dados do painel...');
+            setUser(session.user);
+            await loadUserData(session.user.id);
           }
         } catch (error) {
           console.error('❌ Erro ao verificar sessão após voltar à aba:', error);
@@ -189,11 +183,13 @@ const Admin = () => {
           await supabase.auth.signOut();
           setUser(null);
           setData(null);
-          navigate('/admin', { replace: true });
+          navigate('/', { replace: true });
           return;
         }
+        // Slug correto, continuar carregando dados
+        console.log('✅ Slug correto, carregando dados...');
       } else {
-        // Se não há slug na URL, redirecionar para o slug correto
+        // Se não há slug na URL (/admin), redirecionar para o slug correto apenas se ainda não estiver lá
         console.log('🔄 Redirecionando para:', `/${userBakeryData.slug}/admin`);
         navigate(`/${userBakeryData.slug}/admin`, { replace: true });
         return;
