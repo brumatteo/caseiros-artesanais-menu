@@ -69,6 +69,7 @@ export interface SiteSettings {
   aboutText: string;
   aboutImage?: string;
   showAbout: boolean;
+  showAboutImage?: boolean;
   extraInfoTitle: string;
   extraInfoText: string;
   showExtraInfo: boolean;

@@ -17,7 +17,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // 🚀 Atualiza dados locais e no Supabase
+  // 🚀 Atualiza dados locais e no Supabase (sem notificação visual)
   const updateSettings = async (updates: Partial<typeof data.settings>) => {
     const newSettings = {
       ...data.settings,
@@ -30,7 +30,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
       settings: newSettings,
     });
 
-    // ⚙️ Atualiza também no Supabase
+    // ⚙️ Atualiza também no Supabase silenciosamente
     if (!bakeryId) {
       console.warn("⚠️ Nenhum bakeryId informado — salvamento local apenas.");
       return;
@@ -52,11 +52,7 @@ export function SettingsTab({ data, onDataChange, bakeryId }: SettingsTabProps) 
         variant: 'destructive',
       });
     } else {
-      console.log('✅ Configurações salvas no Supabase com sucesso');
-      toast({
-        title: 'Alterações salvas!',
-        description: 'As configurações foram atualizadas.',
-      });
+      console.log('✅ Configurações salvas silenciosamente');
     }
   };
 

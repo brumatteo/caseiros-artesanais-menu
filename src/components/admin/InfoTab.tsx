@@ -67,7 +67,11 @@ export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
                 <Input
                   value={data.settings.aboutTitle}
                   onChange={(e) => updateSettings({ aboutTitle: e.target.value })}
+                  placeholder="Ex: Sobre Nós"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Título da seção que conta sua história
+                </p>
               </div>
 
               <div>
@@ -75,15 +79,29 @@ export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
                 <Textarea
                   value={data.settings.aboutText}
                   onChange={(e) => updateSettings({ aboutText: e.target.value })}
+                  placeholder="Ex: Faço bolos artesanais há mais de 10 anos, com receitas de família e ingredientes selecionados..."
                   rows={4}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Conte sua história e o que torna seus produtos especiais
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <Label>Exibir imagem na seção "Sobre"</Label>
+                <Switch
+                  checked={data.settings.showAboutImage !== false}
+                  onCheckedChange={(checked) => updateSettings({ showAboutImage: checked })}
                 />
               </div>
 
-              <ImageUpload
-                label="Foto (opcional)"
-                currentImage={data.settings.aboutImage}
-                onImageChange={(image) => updateSettings({ aboutImage: image })}
-              />
+              {data.settings.showAboutImage !== false && (
+                <ImageUpload
+                  label="Foto (opcional)"
+                  currentImage={data.settings.aboutImage}
+                  onImageChange={(image) => updateSettings({ aboutImage: image })}
+                />
+              )}
             </>
           )}
         </div>
@@ -106,9 +124,13 @@ export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
               <div>
                 <Label>Título da Seção</Label>
                 <Input
-                  value={data.settings.extraInfoTitle || 'Informações Adicionais'}
+                  value={data.settings.extraInfoTitle || ''}
                   onChange={(e) => updateSettings({ extraInfoTitle: e.target.value })}
+                  placeholder="Ex: Informações Importantes"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Título da seção com políticas, prazos e informações gerais
+                </p>
               </div>
               
               <div>
@@ -117,8 +139,11 @@ export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
                   value={data.settings.extraInfoText}
                   onChange={(e) => updateSettings({ extraInfoText: e.target.value })}
                   rows={5}
-                  placeholder="• Retirada no local ou entrega (consulte taxa)&#10;• Prazo mínimo: 48h de antecedência"
+                  placeholder="Ex:&#10;• Retirada no local ou entrega (consulte taxa)&#10;• Prazo mínimo: 48h de antecedência&#10;• Formas de pagamento: dinheiro, PIX, cartão"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Informações sobre prazos, entrega, pagamento e políticas
+                </p>
               </div>
             </>
           )}
@@ -134,7 +159,11 @@ export function InfoTab({ data, onDataChange, bakeryId }: InfoTabProps) {
             <Input
               value={data.settings.footerText}
               onChange={(e) => updateSettings({ footerText: e.target.value })}
+              placeholder="Ex: © 2024 Bolos da Maria - Todos os direitos reservados"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Texto que aparecerá no final da página
+            </p>
           </div>
 
           <div>

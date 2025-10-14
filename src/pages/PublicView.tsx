@@ -146,7 +146,7 @@ export default function PublicView() {
 
       <main className="container mx-auto px-4 py-12">
         {data.products.length > 0 && (
-          <section className="mb-16">
+          <section id="nossos-bolos" className="mb-16">
             <h2 className="text-3xl font-display font-bold text-center mb-8">
               Nossos Produtos
             </h2>
@@ -168,8 +168,17 @@ export default function PublicView() {
             <h2 className="text-3xl font-display font-bold text-center mb-6">
               {data.settings.aboutTitle}
             </h2>
+            {data.settings.showAboutImage !== false && data.settings.aboutImage && (
+              <div className="flex justify-center mb-6">
+                <img 
+                  src={data.settings.aboutImage} 
+                  alt={data.settings.aboutTitle || 'Sobre'} 
+                  className="max-w-md w-full rounded-lg shadow-lg object-cover"
+                />
+              </div>
+            )}
             <div className="prose prose-lg mx-auto text-center">
-              <p>{data.settings.aboutText}</p>
+              <p className="whitespace-pre-wrap">{data.settings.aboutText}</p>
             </div>
           </section>
         )}

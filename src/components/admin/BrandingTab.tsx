@@ -59,8 +59,11 @@ export function BrandingTab({ data, onDataChange, bakeryId }: BrandingTabProps) 
             <Input
               value={data.settings.brandName}
               onChange={(e) => updateSettings({ brandName: e.target.value })}
-              placeholder="Bolos Caseirinhos"
+              placeholder="Ex: Bolos da Maria"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Digite o nome que aparecerá no topo do site
+            </p>
           </div>
 
           <div className="flex items-center justify-between">
@@ -105,8 +108,12 @@ export function BrandingTab({ data, onDataChange, bakeryId }: BrandingTabProps) 
             <Textarea
               value={data.settings.heroTitle}
               onChange={(e) => updateSettings({ heroTitle: e.target.value })}
+              placeholder="Ex: Bolos artesanais feitos com amor"
               rows={2}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Título principal que aparecerá no banner da página inicial
+            </p>
           </div>
 
           <div>
@@ -114,7 +121,11 @@ export function BrandingTab({ data, onDataChange, bakeryId }: BrandingTabProps) 
             <Input
               value={data.settings.heroSubtitle}
               onChange={(e) => updateSettings({ heroSubtitle: e.target.value })}
+              placeholder="Ex: Sabor de infância em cada pedaço"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Frase complementar que aparecerá abaixo do título
+            </p>
           </div>
 
           <div>

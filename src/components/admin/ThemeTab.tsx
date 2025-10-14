@@ -54,6 +54,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
         <div className="space-y-4">
           <div>
             <Label>Cor Primária (botões, links, destaques)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Sugestão: #E88D95 (rosê) ou escolha sua cor preferida
+            </p>
             <div className="flex items-center gap-3">
               <Input
                 type="color"
@@ -63,9 +66,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
               />
               <Input
                 type="text"
-                value={data.settings.colorPrimary || '#E88D95'}
+                value={data.settings.colorPrimary || ''}
                 onChange={(e) => updateSettings({ colorPrimary: e.target.value })}
-                placeholder="#E88D95"
+                placeholder="Ex: #E88D95"
                 className="flex-1"
               />
             </div>
@@ -73,6 +76,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
 
           <div>
             <Label>Cor Secundária (elementos de apoio)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Sugestão: #9DC4A8 (verde suave) ou escolha sua cor preferida
+            </p>
             <div className="flex items-center gap-3">
               <Input
                 type="color"
@@ -82,9 +88,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
               />
               <Input
                 type="text"
-                value={data.settings.colorSecondary || '#9DC4A8'}
+                value={data.settings.colorSecondary || ''}
                 onChange={(e) => updateSettings({ colorSecondary: e.target.value })}
-                placeholder="#9DC4A8"
+                placeholder="Ex: #9DC4A8"
                 className="flex-1"
               />
             </div>
@@ -92,6 +98,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
 
           <div>
             <Label>Cor de Destaque (seções especiais)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Sugestão: #E8C89D (bege claro) ou escolha sua cor preferida
+            </p>
             <div className="flex items-center gap-3">
               <Input
                 type="color"
@@ -101,9 +110,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
               />
               <Input
                 type="text"
-                value={data.settings.colorAccent || '#E8C89D'}
+                value={data.settings.colorAccent || ''}
                 onChange={(e) => updateSettings({ colorAccent: e.target.value })}
-                placeholder="#E8C89D"
+                placeholder="Ex: #E8C89D"
                 className="flex-1"
               />
             </div>
@@ -111,6 +120,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
 
           <div>
             <Label>Cor de Fundo (fundo das páginas)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Sugestão: #F5F1ED (bege muito claro) ou escolha sua cor preferida
+            </p>
             <div className="flex items-center gap-3">
               <Input
                 type="color"
@@ -120,9 +132,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
               />
               <Input
                 type="text"
-                value={data.settings.colorBackground || '#F5F1ED'}
+                value={data.settings.colorBackground || ''}
                 onChange={(e) => updateSettings({ colorBackground: e.target.value })}
-                placeholder="#F5F1ED"
+                placeholder="Ex: #F5F1ED"
                 className="flex-1"
               />
             </div>
@@ -130,6 +142,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
 
           <div>
             <Label>Cor do Texto (texto principal)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Sugestão: #3D2E27 (marrom escuro) ou escolha sua cor preferida
+            </p>
             <div className="flex items-center gap-3">
               <Input
                 type="color"
@@ -139,9 +154,9 @@ export function ThemeTab({ data, onDataChange, bakeryId }: ThemeTabProps) {
               />
               <Input
                 type="text"
-                value={data.settings.colorForeground || '#3D2E27'}
+                value={data.settings.colorForeground || ''}
                 onChange={(e) => updateSettings({ colorForeground: e.target.value })}
-                placeholder="#3D2E27"
+                placeholder="Ex: #3D2E27"
                 className="flex-1"
               />
             </div>
