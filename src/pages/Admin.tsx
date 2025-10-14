@@ -93,11 +93,43 @@ const Admin = () => {
       }
     });
 
+    // Listener para quando a aba recupera o foco (usuário volta de "Ver meu site")
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && isMounted) {
+        console.log('👀 Aba voltou a ter foco, verificando sessão...');
+        
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error || !session) {
+            console.warn('⚠️ Sessão perdida após voltar à aba');
+            setUser(null);
+            setData(null);
+            setHasAccess(false);
+            setIsCheckingAuth(false);
+            return;
+          }
+          
+          // Se há sessão mas não há dados carregados, recarregar
+          if (session?.user && (!data || !hasAccess)) {
+            console.log('🔄 Restaurando dados do painel...');
+            setIsCheckingAuth(true);
+            await loadUserData(session.user.id);
+          }
+        } catch (error) {
+          console.error('❌ Erro ao verificar sessão após voltar à aba:', error);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [slug, navigate]);
+  }, [slug]);
 
   const loadUserData = async (userId: string) => {
     try {
