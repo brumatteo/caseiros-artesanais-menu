@@ -180,36 +180,6 @@ const Admin = () => {
 
   const handleDataChange = async (newData: AppData) => {
     setData(newData);
-    
-    // 🔥 SALVAR NO SUPABASE
-    try {
-      console.log('💾 Salvando dados no Supabase...', { bakeryId, settings: newData.settings });
-      
-      const { error } = await supabase
-        .from('bakeries')
-        .update({ 
-          settings: newData.settings,
-          confectionery_name: newData.settings.brandName 
-        })
-        .eq('id', bakeryId);
-
-      if (error) {
-        console.error('❌ Erro ao salvar:', error);
-        toast({
-          title: 'Erro ao salvar',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        console.log('✅ Dados salvos com sucesso!');
-        toast({
-          title: 'Salvo!',
-          description: 'Suas alterações foram salvas.',
-        });
-      }
-    } catch (error) {
-      console.error('❌ Erro inesperado:', error);
-    }
   };
 
   const handleCloseAdmin = () => {
