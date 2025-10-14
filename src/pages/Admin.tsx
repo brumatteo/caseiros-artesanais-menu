@@ -171,7 +171,7 @@ const Admin = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(tokenRefreshInterval);
     };
-  }, [slug]); // Adicionar slug de volta às dependências
+  }, []); // ✅ SEM slug nas dependências para evitar re-renders
 
   const loadUserData = async (userId: string) => {
     try {

@@ -14,6 +14,7 @@ import { SettingsTab } from './admin/SettingsTab';
 import { TagsTab } from './admin/TagsTab';
 import { saveDataToSupabase } from '@/lib/supabaseStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { compressBase64Image } from '@/lib/utils';
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -48,18 +49,39 @@ export function AdminPanel({
     setIsSaving(true);
     console.log('🔄 Iniciando salvamento...', { bakeryId, data });
     
-    // Timeout de segurança mais agressivo: 15s
+    // Timeout de segurança: 30s para dar tempo de processar imagens grandes
     const saveTimeout = setTimeout(() => {
-      console.error('⏱️ Timeout: salvamento excedeu 15 segundos');
+      console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
       setIsSaving(false);
       toast({
         title: "Tempo esgotado",
         description: "O salvamento demorou muito. Sua sessão pode ter expirado. Tente novamente.",
         variant: "destructive"
       });
-    }, 15000); // Reduzido de 30s para 15s
+    }, 30000); // 30 segundos
     
     try {
+      // Comprimir imagens antes de salvar para evitar timeout
+      const dataToSave = { ...data };
+      if (dataToSave.settings.logoImage?.startsWith('data:image')) {
+        console.log('🖼️ Comprimindo logo...');
+        try {
+          dataToSave.settings.logoImage = await compressBase64Image(dataToSave.settings.logoImage, 400);
+          console.log('✅ Logo comprimida');
+        } catch (err) {
+          console.warn('⚠️ Não foi possível comprimir logo:', err);
+        }
+      }
+      if (dataToSave.settings.heroImage?.startsWith('data:image')) {
+        console.log('🖼️ Comprimindo hero image...');
+        try {
+          dataToSave.settings.heroImage = await compressBase64Image(dataToSave.settings.heroImage, 1200);
+          console.log('✅ Hero image comprimida');
+        } catch (err) {
+          console.warn('⚠️ Não foi possível comprimir hero image:', err);
+        }
+      }
+      
       // FORÇAR refresh do token antes de salvar
       console.log('🔄 Forçando refresh do token antes de salvar...');
       const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
@@ -79,10 +101,10 @@ export function AdminPanel({
         }, 2000);
         return;
       }
-      
-      console.log('✅ Token renovado, prosseguindo com salvamento...');
-      
-      const saved = await saveDataToSupabase(data, bakeryId);
+    
+    console.log('✅ Token renovado, prosseguindo com salvamento...');
+    
+    const saved = await saveDataToSupabase(dataToSave, bakeryId);
       
       clearTimeout(saveTimeout);
       
