@@ -18,7 +18,7 @@ export function SectionsTab({ data, onDataChange }: SectionsTabProps) {
 
   const handleAddSection = () => {
     const newSection: ProductSection = {
-      id: `section_${Math.random().toString(36).substr(2, 9)}`,
+      id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: 'Nova Seção',
       visible: true,
       order: data.sections.length,
@@ -74,12 +74,25 @@ export function SectionsTab({ data, onDataChange }: SectionsTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Seções de Bolos</h3>
+        <div>
+          <h3 className="text-lg font-semibold">Seções de Produtos</h3>
+          <p className="text-sm text-muted-foreground">
+            Organize seu cardápio em seções como "Bolos", "Doces", "Tortas", etc.
+          </p>
+        </div>
         <Button onClick={handleAddSection}>
           <Plus className="h-4 w-4 mr-2" />
-          Adicionar Seção de Bolos
+          Adicionar Seção
         </Button>
       </div>
+
+      {sortedSections.length === 0 && (
+        <div className="text-center py-8 bg-accent/30 rounded-lg">
+          <p className="text-muted-foreground">
+            Nenhuma seção criada ainda. Clique em "Adicionar Seção" para começar!
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {sortedSections.map((section, index) => (

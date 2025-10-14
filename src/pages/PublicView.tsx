@@ -54,6 +54,17 @@ export default function PublicView() {
           console.error('Error fetching products:', productsError);
         }
 
+        // Fetch sections for this bakery
+        const { data: sections, error: sectionsError } = await supabase
+          .from('sections')
+          .select('*')
+          .eq('bakery_id', bakery.id)
+          .order('section_order', { ascending: true });
+
+        if (sectionsError) {
+          console.error('Error fetching sections:', sectionsError);
+        }
+
         // Transform database data to AppData format - SEM DEFAULTS
         const productsData: Product[] = (products || []).map((p) => ({
           id: p.id,
@@ -93,7 +104,13 @@ export default function PublicView() {
             adminPassword: '',
           },
           products: productsData,
-          sections: [],
+          sections: (sections || []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            visible: s.visible !== false,
+            order: s.section_order || 0,
+            productIds: (s.product_ids as string[]) || [],
+          })),
           extras: [],
           tags: [],
         };
@@ -149,23 +166,37 @@ export default function PublicView() {
       <Hero settings={data.settings} />
 
       <main className="container mx-auto px-4 py-12">
-        {data.products.length > 0 && (
-          <section id="nossos-bolos" className="mb-16">
-            <h2 className="text-3xl font-display font-bold text-center mb-8">
-              Nossos Produtos
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  tags={data.tags}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Renderizar seções dinamicamente do banco de dados */}
+        {data.sections
+          .filter(section => section.visible)
+          .sort((a, b) => a.order - b.order)
+          .map((section) => {
+            const sectionProducts = data.products.filter(p => 
+              section.productIds.includes(p.id)
+            );
+            
+            // Só renderizar seção se tiver produtos
+            if (sectionProducts.length === 0) return null;
+            
+            return (
+              <section key={section.id} id={`section-${section.id}`} className="mb-16">
+                <h2 className="text-3xl font-display font-bold text-center mb-8">
+                  {section.name}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {sectionProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      tags={data.tags}
+                      onAddToCart={handleAddToCart}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })
+        }
 
         {data.settings.showAbout && (
           <section className="mb-16 bg-card rounded-lg p-8">

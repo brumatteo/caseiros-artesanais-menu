@@ -94,6 +94,16 @@ export function ProductsTab({ data, onDataChange, sectionId }: ProductsTabProps)
     );
   }
 
+  if (data.sections.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-4">
+        <p className="text-muted-foreground">
+          Nenhuma seção criada ainda. Vá para a aba "Seções" e crie uma seção primeiro.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -117,6 +127,9 @@ export function ProductsTab({ data, onDataChange, sectionId }: ProductsTabProps)
             </option>
           ))}
         </select>
+        <p className="text-xs text-muted-foreground">
+          Produtos serão adicionados nesta seção
+        </p>
       </div>
 
       <div className="space-y-3">
