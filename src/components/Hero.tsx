@@ -60,8 +60,8 @@ export function Hero({ settings }: HeroProps) {
         
         <Button 
           onClick={() => {
-            const section = document.getElementById('nossos-bolos');
-            section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const firstSection = document.querySelector('main section[id^="section-"]');
+            firstSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
           size="lg"
           className="mt-6 animate-fade-in"

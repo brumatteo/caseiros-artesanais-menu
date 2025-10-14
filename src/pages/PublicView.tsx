@@ -206,20 +206,22 @@ export default function PublicView() {
 
         {data.settings.showAbout && (
           <section className="mb-16 bg-card rounded-lg p-8">
-            <h2 className="text-3xl font-display font-bold text-center mb-6">
+            <h2 className="text-3xl font-display font-bold text-center mb-8">
               {data.settings.aboutTitle}
             </h2>
-            {data.settings.showAboutImage !== false && data.settings.aboutImage && (
-              <div className="flex justify-center mb-6">
-                <img 
-                  src={data.settings.aboutImage} 
-                  alt={data.settings.aboutTitle || 'Sobre'} 
-                  className="max-w-md w-full rounded-lg shadow-lg object-cover"
-                />
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              {data.settings.showAboutImage !== false && data.settings.aboutImage && (
+                <div className="flex-shrink-0 w-full md:w-1/2 lg:w-2/5">
+                  <img 
+                    src={data.settings.aboutImage} 
+                    alt={data.settings.aboutTitle || 'Sobre'} 
+                    className="w-full rounded-lg shadow-lg object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="text-lg whitespace-pre-wrap leading-relaxed">{data.settings.aboutText}</p>
               </div>
-            )}
-            <div className="prose prose-lg mx-auto text-center">
-              <p className="whitespace-pre-wrap">{data.settings.aboutText}</p>
             </div>
           </section>
         )}
@@ -229,7 +231,7 @@ export default function PublicView() {
             <h2 className="text-2xl font-display font-bold text-center mb-4">
               {data.settings.extraInfoTitle}
             </h2>
-            <p className="text-center text-muted-foreground">
+            <p className="text-center text-muted-foreground whitespace-pre-line">
               {data.settings.extraInfoText}
             </p>
           </section>
