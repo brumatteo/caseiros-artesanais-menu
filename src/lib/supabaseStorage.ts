@@ -4,6 +4,14 @@ import { AppData } from '@/types';
 export async function saveDataToSupabase(data: AppData, bakeryId: string): Promise<boolean> {
   try {
     console.log('💾 Iniciando salvamento no Supabase...', { bakeryId, data });
+    
+    // Verificar sessão antes de qualquer operação
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !session) {
+      console.error('❌ Sessão inválida ao tentar salvar:', sessionError);
+      throw new Error('Sessão expirada. Por favor, faça login novamente.');
+    }
 
     // 1. Atualizar bakeries (settings)
     console.log('📝 Salvando settings completo:', JSON.stringify(data.settings, null, 2));

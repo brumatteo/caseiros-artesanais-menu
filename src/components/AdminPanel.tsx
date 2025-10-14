@@ -13,6 +13,7 @@ import { SectionsTab } from './admin/SectionsTab';
 import { SettingsTab } from './admin/SettingsTab';
 import { TagsTab } from './admin/TagsTab';
 import { saveDataToSupabase } from '@/lib/supabaseStorage';
+import { supabase } from '@/integrations/supabase/client';
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -47,14 +48,49 @@ export function AdminPanel({
     setIsSaving(true);
     console.log('🔄 Iniciando salvamento...', { bakeryId, data });
     
+    // Timeout de segurança: se não finalizar em 30s, abortar
+    const saveTimeout = setTimeout(() => {
+      console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
+      setIsSaving(false);
+      toast({
+        title: "Tempo esgotado",
+        description: "O salvamento demorou muito. Verifique sua conexão e tente novamente.",
+        variant: "destructive"
+      });
+    }, 30000);
+    
     try {
+      // Verificar sessão antes de salvar
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('❌ Sessão inválida ou expirada:', sessionError);
+        clearTimeout(saveTimeout);
+        setIsSaving(false);
+        toast({
+          title: "Sessão expirada",
+          description: "Sua sessão expirou. Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        
+        // Aguardar 2s e solicitar logout para reautenticação
+        setTimeout(() => {
+          onLogout();
+        }, 2000);
+        return;
+      }
+      
+      console.log('✅ Sessão válida, prosseguindo com salvamento...');
+      
       const saved = await saveDataToSupabase(data, bakeryId);
+      
+      clearTimeout(saveTimeout);
       
       if (!saved) {
         console.error('❌ Salvamento falhou');
         toast({
           title: "Erro ao salvar",
-          description: "Não foi possível salvar as alterações. Verifique o console para detalhes.",
+          description: "Não foi possível salvar as alterações. Tente novamente.",
           variant: "destructive"
         });
         setIsSaving(false);
@@ -66,13 +102,32 @@ export function AdminPanel({
         title: "Salvo com sucesso!",
         description: "Suas alterações foram salvas no banco de dados."
       });
-    } catch (error) {
+    } catch (error: any) {
+      clearTimeout(saveTimeout);
       console.error('❌ Erro ao salvar:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: "Ocorreu um erro inesperado. Verifique o console para detalhes.",
-        variant: "destructive"
-      });
+      
+      // Detectar erros de autenticação
+      const isAuthError = error?.message?.includes('JWT') || 
+                         error?.message?.includes('session') ||
+                         error?.code === 'PGRST301';
+      
+      if (isAuthError) {
+        toast({
+          title: "Sessão expirada",
+          description: "Sua sessão expirou. Faça login novamente.",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          onLogout();
+        }, 2000);
+      } else {
+        toast({
+          title: "Erro ao salvar",
+          description: error?.message || "Ocorreu um erro inesperado. Tente novamente.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSaving(false);
     }
