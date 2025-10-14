@@ -36,6 +36,12 @@ const Admin = () => {
       
       if (session?.user) {
         await loadUserData(session.user.id);
+      } else {
+        setIsCheckingAuth(false);
+        // Se não há usuário e há slug, redirecionar para login
+        if (slug) {
+          navigate('/admin');
+        }
       }
       
       setIsCheckingAuth(false);
@@ -51,11 +57,12 @@ const Admin = () => {
         await loadUserData(session.user.id);
       } else {
         setData(null);
+        setHasAccess(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [slug, navigate]);
 
   const loadUserData = async (userId: string) => {
     try {
@@ -73,6 +80,8 @@ const Admin = () => {
 
         if (bakeryError) {
           console.error('❌ Erro ao buscar bakery:', bakeryError);
+          setIsCheckingAuth(false);
+          setHasAccess(false);
           toast({
             title: 'Erro',
             description: 'Não foi possível carregar dados da confeitaria',
@@ -83,12 +92,13 @@ const Admin = () => {
 
         if (!bakeryData) {
           console.warn('⚠️ Acesso negado: usuário não é dono desta confeitaria');
+          setIsCheckingAuth(false);
+          setHasAccess(false);
           toast({
             title: 'Acesso negado',
             description: 'Você não tem permissão para acessar este painel',
             variant: 'destructive',
           });
-          setHasAccess(false);
           navigate('/');
           return;
         }
@@ -104,6 +114,8 @@ const Admin = () => {
 
         if (bakeryError) {
           console.error('❌ Erro ao buscar bakery:', bakeryError);
+          setIsCheckingAuth(false);
+          setHasAccess(false);
           toast({
             title: 'Erro',
             description: 'Não foi possível carregar dados da confeitaria',
@@ -114,17 +126,22 @@ const Admin = () => {
 
         if (!bakeryData) {
           console.warn('⚠️ Confeitaria não encontrada para o usuário');
+          setIsCheckingAuth(false);
+          setHasAccess(false);
           toast({
             title: 'Confeitaria não encontrada',
             description: 'Por favor, complete o cadastro',
             variant: 'destructive',
           });
+          navigate('/');
           return;
         }
         
         bakery = bakeryData;
-        // Redirecionar para /:slug/admin
-        navigate(`/${bakery.slug}/admin`, { replace: true });
+        // Redirecionar para /:slug/admin apenas se não estamos já nessa rota
+        if (window.location.pathname !== `/${bakery.slug}/admin`) {
+          navigate(`/${bakery.slug}/admin`, { replace: true });
+        }
         return;
       }
 
