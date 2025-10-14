@@ -97,13 +97,14 @@ const Admin = () => {
     // Listener para quando a aba recupera o foco (usuário volta de "Ver meu site")
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible' && isMounted) {
-        console.log('👀 Aba voltou a ter foco, verificando sessão...');
+        console.log('👀 Aba voltou a ter foco, revalidando sessão do Supabase...');
         
         try {
+          // SEMPRE verificar se a sessão do Supabase está realmente ativa
           const { data: { session }, error } = await supabase.auth.getSession();
           
           if (error || !session) {
-            console.warn('⚠️ Sessão perdida após voltar à aba');
+            console.warn('⚠️ Sessão do Supabase perdida, limpando estados');
             setUser(null);
             setData(null);
             setHasAccess(false);
@@ -111,26 +112,61 @@ const Admin = () => {
             return;
           }
           
-          // Se há sessão válida mas não há dados ou acesso, recarregar
-          if (session?.user && (!data || !hasAccess)) {
-            console.log('🔄 Sessão válida detectada, recarregando dados do painel...');
+          // Verificar se a sessão do Supabase ainda é válida fazendo uma query de teste
+          const { error: testError } = await supabase
+            .from('bakeries')
+            .select('id')
+            .limit(1);
+          
+          if (testError) {
+            console.warn('⚠️ Sessão do Supabase inválida, forçando reautenticação');
+            await supabase.auth.signOut();
+            setUser(null);
+            setData(null);
+            setHasAccess(false);
+            setIsCheckingAuth(false);
+            return;
+          }
+          
+          // Se chegou aqui, a sessão está válida e ativa
+          console.log('✅ Sessão do Supabase válida e ativa');
+          
+          // Se o usuário mudou ou não há dados carregados, recarregar
+          if (!user || !data || !hasAccess || user.id !== session.user.id) {
+            console.log('🔄 Recarregando dados do painel...');
             setUser(session.user);
             await loadUserData(session.user.id);
           }
         } catch (error) {
-          console.error('❌ Erro ao verificar sessão após voltar à aba:', error);
+          console.error('❌ Erro ao revalidar sessão:', error);
+          setUser(null);
+          setData(null);
+          setHasAccess(false);
+          setIsCheckingAuth(false);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Adicionar refresh automático de token a cada 5 minutos
+    const tokenRefreshInterval = setInterval(async () => {
+      if (user && data && hasAccess) {
+        console.log('🔄 Renovando token do Supabase automaticamente...');
+        const { error } = await supabase.auth.refreshSession();
+        if (error) {
+          console.error('❌ Erro ao renovar token:', error);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(tokenRefreshInterval);
     };
-  }, [slug]);
+  }, []); // Remover slug das dependências - rodar apenas na montagem
 
   const loadUserData = async (userId: string) => {
     try {
@@ -189,10 +225,15 @@ const Admin = () => {
         // Slug correto, continuar carregando dados
         console.log('✅ Slug correto, carregando dados...');
       } else {
-        // Se não há slug na URL (/admin), redirecionar para o slug correto apenas se ainda não estiver lá
-        console.log('🔄 Redirecionando para:', `/${userBakeryData.slug}/admin`);
-        navigate(`/${userBakeryData.slug}/admin`, { replace: true });
-        return;
+        // Se não há slug na URL (/admin), verificar se não estamos já redirecionando
+        const currentPath = window.location.pathname;
+        const targetPath = `/${userBakeryData.slug}/admin`;
+        
+        if (currentPath !== targetPath) {
+          console.log('🔄 Redirecionando de /admin para:', targetPath);
+          navigate(targetPath, { replace: true });
+          return;
+        }
       }
 
       const bakery = userBakeryData;
