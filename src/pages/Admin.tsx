@@ -87,6 +87,12 @@ const Admin = () => {
       // Carregar dados para SIGNED_IN, TOKEN_REFRESHED e INITIAL_SESSION
       if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
         await loadUserData(session.user.id);
+        
+        // Se fez login em /admin (sem slug), redirecionar para /:slug/admin após carregar dados
+        if (event === 'SIGNED_IN' && !slug && userSlug) {
+          console.log('🔄 Login bem-sucedido, redirecionando para:', `/${userSlug}/admin`);
+          navigate(`/${userSlug}/admin`, { replace: true });
+        }
       } else if (!session?.user) {
         setData(null);
         setHasAccess(false);
@@ -100,8 +106,8 @@ const Admin = () => {
         console.log('👀 Aba voltou a ter foco, revalidando sessão do Supabase...');
         
         try {
-          // SEMPRE verificar se a sessão do Supabase está realmente ativa
-          const { data: { session }, error } = await supabase.auth.getSession();
+          // FORÇAR refresh do token para reativar o cliente Supabase
+          const { data: { session }, error } = await supabase.auth.refreshSession();
           
           if (error || !session) {
             console.warn('⚠️ Sessão do Supabase perdida, limpando estados');
@@ -112,14 +118,14 @@ const Admin = () => {
             return;
           }
           
-          // Verificar se a sessão do Supabase ainda é válida fazendo uma query de teste
+          // Agora sim, testar se o cliente está funcionando
           const { error: testError } = await supabase
             .from('bakeries')
             .select('id')
             .limit(1);
           
           if (testError) {
-            console.warn('⚠️ Sessão do Supabase inválida, forçando reautenticação');
+            console.warn('⚠️ Cliente Supabase não está funcionando, forçando reautenticação');
             await supabase.auth.signOut();
             setUser(null);
             setData(null);
@@ -128,10 +134,9 @@ const Admin = () => {
             return;
           }
           
-          // Se chegou aqui, a sessão está válida e ativa
-          console.log('✅ Sessão do Supabase válida e ativa');
+          console.log('✅ Sessão do Supabase reativada com sucesso');
           
-          // Se o usuário mudou ou não há dados carregados, recarregar
+          // Recarregar dados se necessário
           if (!user || !data || !hasAccess || user.id !== session.user.id) {
             console.log('🔄 Recarregando dados do painel...');
             setUser(session.user);
@@ -166,7 +171,7 @@ const Admin = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(tokenRefreshInterval);
     };
-  }, []); // Remover slug das dependências - rodar apenas na montagem
+  }, [slug]); // Adicionar slug de volta às dependências
 
   const loadUserData = async (userId: string) => {
     try {
@@ -224,17 +229,9 @@ const Admin = () => {
         }
         // Slug correto, continuar carregando dados
         console.log('✅ Slug correto, carregando dados...');
-      } else {
-        // Se não há slug na URL (/admin), verificar se não estamos já redirecionando
-        const currentPath = window.location.pathname;
-        const targetPath = `/${userBakeryData.slug}/admin`;
-        
-        if (currentPath !== targetPath) {
-          console.log('🔄 Redirecionando de /admin para:', targetPath);
-          navigate(targetPath, { replace: true });
-          return;
-        }
       }
+      // Se não há slug na URL (/admin), o redirecionamento será feito DEPOIS do login,
+      // não durante o carregamento de dados
 
       const bakery = userBakeryData;
 
@@ -285,13 +282,15 @@ const Admin = () => {
       setIsCheckingAuth(false);
     } catch (error) {
       console.error('❌ Erro ao carregar dados do usuário:', error);
-      setIsCheckingAuth(false);
       setHasAccess(false);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar seus dados',
         variant: 'destructive',
       });
+    } finally {
+      // SEMPRE chamar setIsCheckingAuth(false), mesmo em caso de erro
+      setIsCheckingAuth(false);
     }
   };
 

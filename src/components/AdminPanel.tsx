@@ -48,23 +48,24 @@ export function AdminPanel({
     setIsSaving(true);
     console.log('🔄 Iniciando salvamento...', { bakeryId, data });
     
-    // Timeout de segurança: se não finalizar em 30s, abortar
+    // Timeout de segurança mais agressivo: 15s
     const saveTimeout = setTimeout(() => {
-      console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
+      console.error('⏱️ Timeout: salvamento excedeu 15 segundos');
       setIsSaving(false);
       toast({
         title: "Tempo esgotado",
-        description: "O salvamento demorou muito. Verifique sua conexão e tente novamente.",
+        description: "O salvamento demorou muito. Sua sessão pode ter expirado. Tente novamente.",
         variant: "destructive"
       });
-    }, 30000);
+    }, 15000); // Reduzido de 30s para 15s
     
     try {
-      // Verificar sessão antes de salvar
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // FORÇAR refresh do token antes de salvar
+      console.log('🔄 Forçando refresh do token antes de salvar...');
+      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
       
-      if (sessionError || !session) {
-        console.error('❌ Sessão inválida ou expirada:', sessionError);
+      if (refreshError || !session) {
+        console.error('❌ Erro ao refresh do token:', refreshError);
         clearTimeout(saveTimeout);
         setIsSaving(false);
         toast({
@@ -73,14 +74,13 @@ export function AdminPanel({
           variant: "destructive"
         });
         
-        // Aguardar 2s e solicitar logout para reautenticação
         setTimeout(() => {
           onLogout();
         }, 2000);
         return;
       }
       
-      console.log('✅ Sessão válida, prosseguindo com salvamento...');
+      console.log('✅ Token renovado, prosseguindo com salvamento...');
       
       const saved = await saveDataToSupabase(data, bakeryId);
       
