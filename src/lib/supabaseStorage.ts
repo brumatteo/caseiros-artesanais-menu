@@ -202,9 +202,10 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
 
     console.log('✅ Todos os dados salvos com sucesso no Supabase!');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erro geral ao salvar no Supabase:', error);
-    return false;
+    // ✅ PROPAGAR o erro para que AdminPanel.tsx possa tratá-lo
+    throw error;
   }
 }
 

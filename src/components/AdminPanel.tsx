@@ -48,6 +48,26 @@ export function AdminPanel({
 
     setIsSaving(true);
     console.log('🔄 Iniciando salvamento...', { bakeryId, data });
+
+    // ✅ VERIFICAR IMEDIATAMENTE se há sessão ativa
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+    if (!currentSession) {
+      console.error('❌ Nenhuma sessão ativa detectada');
+      setIsSaving(false);
+      toast({
+        title: "Sessão inválida",
+        description: "Você precisa estar logado para salvar. Faça login novamente.",
+        variant: "destructive"
+      });
+      
+      setTimeout(() => {
+        onLogout();
+      }, 2000);
+      return;
+    }
+
+    console.log('✅ Sessão ativa confirmada, prosseguindo...');
     
     // Timeout de segurança: 30s para dar tempo de processar imagens grandes
     const saveTimeout = setTimeout(() => {
@@ -104,31 +124,56 @@ export function AdminPanel({
     
     console.log('✅ Token renovado, prosseguindo com salvamento...');
     
-    const saved = await saveDataToSupabase(dataToSave, bakeryId);
+    try {
+      const saved = await saveDataToSupabase(dataToSave, bakeryId);
       
       clearTimeout(saveTimeout);
       
-      if (!saved) {
-        console.error('❌ Salvamento falhou');
-        toast({
-          title: "Erro ao salvar",
-          description: "Não foi possível salvar as alterações. Tente novamente.",
-          variant: "destructive"
-        });
-        setIsSaving(false);
-        return;
-      }
-      
+      // Se chegou aqui, salvou com sucesso
       console.log('✅ Salvamento concluído com sucesso!');
       toast({
         title: "Salvo com sucesso!",
         description: "Suas alterações foram salvas no banco de dados."
       });
+    } catch (saveError: any) {
+      clearTimeout(saveTimeout);
+      
+      console.error('❌ Erro durante o salvamento:', saveError);
+      
+      // Verificar se é erro de sessão
+      const isSessionError = saveError?.message?.includes('Sessão expirada') ||
+                            saveError?.message?.includes('JWT') ||
+                            saveError?.code === 'PGRST301';
+      
+      if (isSessionError) {
+        toast({
+          title: "Sessão expirada",
+          description: "Sua sessão expirou. Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          onLogout();
+        }, 2000);
+      } else {
+        // Erro de rede ou banco de dados
+        toast({
+          title: "Erro ao salvar",
+          description: saveError?.message || "Não foi possível salvar as alterações. Verifique sua conexão.",
+          variant: "destructive"
+        });
+      }
+      
+      setIsSaving(false);
+      return;
+    }
+    
+    setIsSaving(false);
     } catch (error: any) {
       clearTimeout(saveTimeout);
-      console.error('❌ Erro ao salvar:', error);
+      console.error('❌ Erro ao processar salvamento:', error);
       
-      // Detectar erros de autenticação
+      // Detectar erros de autenticação durante refresh
       const isAuthError = error?.message?.includes('JWT') || 
                          error?.message?.includes('session') ||
                          error?.code === 'PGRST301';
@@ -150,7 +195,7 @@ export function AdminPanel({
           variant: "destructive"
         });
       }
-    } finally {
+      
       setIsSaving(false);
     }
   };
