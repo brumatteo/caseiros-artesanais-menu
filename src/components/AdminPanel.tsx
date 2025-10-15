@@ -308,7 +308,10 @@ export function AdminPanel({
         <div className="flex flex-wrap gap-3 border-t pt-4 mt-4">
           {userSlug && (
             <Button
-              onClick={() => window.open(`/${userSlug}`, '_blank')}
+              onClick={() => {
+                const url = `/${userSlug}`;
+                window.open(url, '_blank', 'noopener,noreferrer');
+              }}
               variant="outline"
               className="flex-1 min-w-[150px]"
             >

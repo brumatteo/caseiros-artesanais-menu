@@ -4,12 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
 import { ProductCard } from '@/components/ProductCard';
-
+import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
 import { CartModal } from '@/components/CartModal';
 import { AppData, Product, CartItem } from '@/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Settings } from 'lucide-react';
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { User } from '@supabase/supabase-js';
 
 export default function PublicView() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,9 +19,32 @@ export default function PublicView() {
   const [isLoading, setIsLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Apply theme colors
   useThemeColors(data?.settings || {} as any);
+
+  // Check if user is authenticated and is the owner
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setCurrentUser(session?.user || null);
+      
+      if (session?.user && slug) {
+        // Check if this user owns this bakery
+        const { data: bakery } = await supabase
+          .from('bakeries')
+          .select('user_id')
+          .eq('slug', slug)
+          .maybeSingle();
+        
+        setIsOwner(bakery?.user_id === session.user.id);
+      }
+    };
+    
+    checkAuth();
+  }, [slug]);
 
   useEffect(() => {
     if (!slug) {
@@ -182,6 +206,18 @@ export default function PublicView() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Edit Panel Button - Only visible to owner */}
+      {isOwner && (
+        <Button
+          onClick={() => navigate(`/${slug}/admin`)}
+          className="fixed top-4 right-4 z-50 shadow-lg"
+          size="sm"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Editar Painel
+        </Button>
+      )}
+
       {/* Navbar - só renderiza se tiver brandName ou logo */}
       {(data.settings.brandName || data.settings.logoImage) && (
         <Navbar settings={data.settings} cartItemCount={cart.length} onCartClick={() => setIsCartOpen(true)} />

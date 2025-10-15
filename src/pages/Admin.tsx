@@ -342,8 +342,8 @@ const Admin = () => {
         description: 'Você saiu do painel administrativo.',
       });
       
-      // Redirecionar para login
-      navigate('/admin', { replace: true });
+      // Redirecionar para home
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('❌ Erro ao fazer logout:', error);
       toast({
