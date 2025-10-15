@@ -3,6 +3,15 @@ import { AppData } from '@/types';
 
 export async function saveDataToSupabase(data: AppData, bakeryId: string): Promise<boolean> {
   try {
+    console.log('🧩 Iniciando saveDataToSupabase. Dados recebidos:', {
+      hasData: !!data,
+      settingsKeys: Object.keys(data?.settings || {}),
+      productsLength: data?.products?.length || 0,
+      extrasLength: data?.extras?.length || 0,
+      sectionsLength: data?.sections?.length || 0,
+      tagsLength: data?.tags?.length || 0
+    });
+    console.log('🧩 Preview do dataToSave:', JSON.stringify(data, null, 2).slice(0, 500));
     console.log('💾 Iniciando salvamento no Supabase...', { bakeryId, data });
     
     // Verificar sessão antes de qualquer operação
