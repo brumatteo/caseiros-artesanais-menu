@@ -69,15 +69,21 @@ export function AdminPanel({
 
     console.log('✅ Sessão ativa confirmada, prosseguindo...');
     
+    // Flag para controlar se o timeout foi disparado
+    let timeoutFired = false;
+    
     // Timeout de segurança: 30s para dar tempo de processar imagens grandes
     const saveTimeout = setTimeout(() => {
-      console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
-      setIsSaving(false);
-      toast({
-        title: "Tempo esgotado",
-        description: "O salvamento demorou muito. Sua sessão pode ter expirado. Tente novamente.",
-        variant: "destructive"
-      });
+      if (!timeoutFired) {
+        timeoutFired = true;
+        console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
+        setIsSaving(false);
+        toast({
+          title: "Tempo esgotado",
+          description: "O salvamento demorou muito. Sua sessão pode ter expirado. Tente novamente.",
+          variant: "destructive"
+        });
+      }
     }, 30000); // 30 segundos
     
     try {
@@ -125,7 +131,13 @@ export function AdminPanel({
     console.log('✅ Token renovado, prosseguindo com salvamento...');
     
     try {
-      const saved = await saveDataToSupabase(dataToSave, bakeryId);
+      await saveDataToSupabase(dataToSave, bakeryId);
+      
+      // Verificar se timeout já disparou
+      if (timeoutFired) {
+        console.log('⚠️ Timeout já disparou, ignorando resultado do salvamento');
+        return;
+      }
       
       clearTimeout(saveTimeout);
       
@@ -135,7 +147,14 @@ export function AdminPanel({
         title: "Salvo com sucesso!",
         description: "Suas alterações foram salvas no banco de dados."
       });
+      setIsSaving(false);
     } catch (saveError: any) {
+      // Verificar se timeout já disparou
+      if (timeoutFired) {
+        console.log('⚠️ Timeout já disparou, ignorando erro do salvamento');
+        return;
+      }
+      
       clearTimeout(saveTimeout);
       
       console.error('❌ Erro durante o salvamento:', saveError);
@@ -165,11 +184,14 @@ export function AdminPanel({
       }
       
       setIsSaving(false);
-      return;
     }
-    
-    setIsSaving(false);
     } catch (error: any) {
+      // Verificar se timeout já disparou
+      if (timeoutFired) {
+        console.log('⚠️ Timeout já disparou, ignorando erro externo');
+        return;
+      }
+      
       clearTimeout(saveTimeout);
       console.error('❌ Erro ao processar salvamento:', error);
       
@@ -197,6 +219,12 @@ export function AdminPanel({
       }
       
       setIsSaving(false);
+    } finally {
+      // ✅ GARANTIA FINAL: Se por algum motivo o botão ainda está travado, destravar
+      if (isSaving && !timeoutFired) {
+        console.warn('⚠️ Finally: Desbloqueando botão como última garantia');
+        setIsSaving(false);
+      }
     }
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
