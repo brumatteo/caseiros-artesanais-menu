@@ -13,8 +13,6 @@ import { SectionsTab } from './admin/SectionsTab';
 import { SettingsTab } from './admin/SettingsTab';
 import { TagsTab } from './admin/TagsTab';
 import { saveDataToSupabase } from '@/lib/supabaseStorage';
-import { supabase } from '@/integrations/supabase/client';
-import { compressBase64Image } from '@/lib/utils';
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,93 +34,43 @@ export function AdminPanel({
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
   const handleSave = async () => {
-    if (isSaving) return;
-
-    try {
-      setIsSaving(true);
-
-      if (!bakeryId) {
-        toast({
-          title: "Erro",
-          description: "ID da confeitaria não encontrado",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Verificar sessão
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast({
-          title: "Sessão expirada",
-          description: "Por favor, faça login novamente",
-          variant: "destructive"
-        });
-        onLogout();
-        return;
-      }
-
-      // Comprimir imagens
-      const dataToSave = { ...data };
-      
-      if (dataToSave.settings?.logoImage?.startsWith('data:image')) {
-        dataToSave.settings.logoImage = await compressBase64Image(dataToSave.settings.logoImage, 400);
-      }
-      if (dataToSave.settings?.heroImage?.startsWith('data:image')) {
-        dataToSave.settings.heroImage = await compressBase64Image(dataToSave.settings.heroImage, 1200);
-      }
-
-      for (const product of dataToSave.products || []) {
-        if (product.image?.startsWith('data:image')) {
-          product.image = await compressBase64Image(product.image, 600);
-        }
-      }
-
-      for (const extra of dataToSave.extras || []) {
-        if (extra.image?.startsWith('data:image')) {
-          extra.image = await compressBase64Image(extra.image, 600);
-        }
-      }
-
-      // Refresh do token
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError || !refreshData.session) {
-        toast({
-          title: "Erro de autenticação",
-          description: "Sua sessão expirou. Por favor, faça login novamente.",
-          variant: "destructive"
-        });
-        onLogout();
-        return;
-      }
-
-      // Salvar dados
-      const success = await saveDataToSupabase(dataToSave, bakeryId);
-
-      if (success) {
-        toast({
-          title: "Sucesso!",
-          description: "Alterações salvas com sucesso",
-        });
-      }
-    } catch (error: any) {
-      console.error('❌ Erro ao salvar:', error);
-      
-      if (error?.message?.includes('JWT') || error?.message?.includes('sessão') || error?.message?.includes('Session')) {
-        toast({
-          title: "Sessão expirada",
-          description: "Por favor, faça login novamente",
-          variant: "destructive"
-        });
-        onLogout();
-        return;
-      }
-
+    if (!bakeryId) {
+      console.error('❌ Erro: bakeryId não fornecido');
       toast({
         title: "Erro ao salvar",
-        description: error.message || "Ocorreu um erro ao salvar os dados",
+        description: "ID da confeitaria não encontrado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    console.log('🔄 Iniciando salvamento...', { bakeryId, data });
+    
+    try {
+      const saved = await saveDataToSupabase(data, bakeryId);
+      
+      if (!saved) {
+        console.error('❌ Salvamento falhou');
+        toast({
+          title: "Erro ao salvar",
+          description: "Não foi possível salvar as alterações. Verifique o console para detalhes.",
+          variant: "destructive"
+        });
+        setIsSaving(false);
+        return;
+      }
+      
+      console.log('✅ Salvamento concluído com sucesso!');
+      toast({
+        title: "Salvo com sucesso!",
+        description: "Suas alterações foram salvas no banco de dados."
+      });
+    } catch (error) {
+      console.error('❌ Erro ao salvar:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro inesperado. Verifique o console para detalhes.",
         variant: "destructive"
       });
     } finally {

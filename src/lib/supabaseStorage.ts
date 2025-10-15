@@ -1,75 +1,53 @@
 import { supabase } from '@/integrations/supabase/client';
 import { AppData } from '@/types';
 
-// Função para sanitizar cores inválidas
-function sanitizeColor(color: string | undefined | null): string {
-  if (!color || typeof color !== 'string') return '#FFFFFF';
-  const hexPattern = /^#[0-9A-Fa-f]{6}$/;
-  return hexPattern.test(color) ? color : '#FFFFFF';
-}
-
-// Função para sanitizar dados antes de salvar
-function sanitizeAppData(data: AppData): AppData {
-  return {
-    settings: {
-      ...data.settings,
-      brandName: data.settings?.brandName || '',
-      colorBackgroundRosa: sanitizeColor(data.settings?.colorBackgroundRosa),
-      colorButtonPrimary: sanitizeColor(data.settings?.colorButtonPrimary),
-      whatsappNumber: data.settings?.whatsappNumber || '',
-      whatsappMessage: data.settings?.whatsappMessage || '',
-      heroTitle: data.settings?.heroTitle || '',
-      heroSubtitle: data.settings?.heroSubtitle || '',
-      aboutTitle: data.settings?.aboutTitle || '',
-      aboutText: data.settings?.aboutText || '',
-      extraInfoTitle: data.settings?.extraInfoTitle || '',
-      extraInfoText: data.settings?.extraInfoText || '',
-      footerText: data.settings?.footerText || '',
-    },
-    products: Array.isArray(data.products) ? data.products : [],
-    extras: Array.isArray(data.extras) ? data.extras : [],
-    sections: Array.isArray(data.sections) ? data.sections : [],
-    tags: Array.isArray(data.tags) ? data.tags : [],
-  };
-}
-
 export async function saveDataToSupabase(data: AppData, bakeryId: string): Promise<boolean> {
   try {
-    // Sanitizar dados antes de salvar
-    const sanitizedData = sanitizeAppData(data);
-    
-    // Verificar sessão antes de qualquer operação
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError || !session) {
-      throw new Error('Sessão expirada. Por favor, faça login novamente.');
-    }
+    console.log('💾 Iniciando salvamento no Supabase...', { bakeryId, data });
 
     // 1. Atualizar bakeries (settings)
+    console.log('📝 Salvando settings completo:', JSON.stringify(data.settings, null, 2));
+    
     const updateData = {
-      confectionery_name: sanitizedData.settings.brandName,
-      settings: sanitizedData.settings,
+      confectionery_name: data.settings.brandName,
+      settings: data.settings,
       updated_at: new Date().toISOString(),
     };
+    
+    console.log('📝 Dados que serão atualizados na tabela bakeries:', updateData);
     
     const { error: bakeryError } = await supabase
       .from('bakeries')
       .update(updateData)
       .eq('id', bakeryId);
 
-    if (bakeryError) throw bakeryError;
+    if (bakeryError) {
+      console.error('❌ Erro ao atualizar bakery:', bakeryError);
+      throw bakeryError;
+    }
+    console.log('✅ Bakery atualizada com sucesso! Settings salvos incluindo:', {
+      brandName: data.settings.brandName,
+      logoImage: data.settings.logoImage ? '✅ tem logo' : '❌ sem logo',
+      heroImage: data.settings.heroImage ? '✅ tem hero' : '❌ sem hero',
+      colorBackgroundRosa: data.settings.colorBackgroundRosa || 'padrão',
+      colorButtonPrimary: data.settings.colorButtonPrimary || 'padrão',
+    });
 
     // 2. Deletar produtos antigos e inserir novos
     const { error: deleteProductsError } = await supabase
       .from('products')
       .delete()
       .eq('bakery_id', bakeryId);
-    
-    if (deleteProductsError) throw deleteProductsError;
 
-    if (sanitizedData.products && sanitizedData.products.length > 0) {
-      const productsToInsert = sanitizedData.products.map((product) => ({
-        id: product.id,
+    if (deleteProductsError) {
+      console.error('❌ Erro ao deletar produtos antigos:', deleteProductsError);
+      throw deleteProductsError;
+    }
+    console.log('✅ Produtos antigos deletados');
+
+    if (data.products && data.products.length > 0) {
+      const productsToInsert = data.products.map((product) => ({
+        id: product.id, // Manter o ID original para vínculo com seções
         bakery_id: bakeryId,
         name: product.name,
         price: product.sizes[0]?.price || 0,
@@ -84,8 +62,12 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       const { error: productsError } = await supabase
         .from('products')
         .insert(productsToInsert);
-      
-      if (productsError) throw productsError;
+
+      if (productsError) {
+        console.error('❌ Erro ao inserir produtos:', productsError);
+        throw productsError;
+      }
+      console.log(`✅ ${productsToInsert.length} produtos inseridos com IDs mantidos`);
     }
 
     // 3. Deletar extras antigos e inserir novos
@@ -93,11 +75,15 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       .from('extras')
       .delete()
       .eq('bakery_id', bakeryId);
-    
-    if (deleteExtrasError) throw deleteExtrasError;
 
-    if (sanitizedData.extras && sanitizedData.extras.length > 0) {
-      const extrasToInsert = sanitizedData.extras.map((extra) => ({
+    if (deleteExtrasError) {
+      console.error('❌ Erro ao deletar extras antigos:', deleteExtrasError);
+      throw deleteExtrasError;
+    }
+    console.log('✅ Extras antigos deletados');
+
+    if (data.extras && data.extras.length > 0) {
+      const extrasToInsert = data.extras.map((extra) => ({
         bakery_id: bakeryId,
         name: extra.name,
         description: extra.description,
@@ -109,8 +95,12 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       const { error: extrasError } = await supabase
         .from('extras')
         .insert(extrasToInsert);
-      
-      if (extrasError) throw extrasError;
+
+      if (extrasError) {
+        console.error('❌ Erro ao inserir extras:', extrasError);
+        throw extrasError;
+      }
+      console.log(`✅ ${extrasToInsert.length} extras inseridos`);
     }
 
     // 4. Deletar sections antigas e inserir novas
@@ -118,12 +108,16 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       .from('sections')
       .delete()
       .eq('bakery_id', bakeryId);
-    
-    if (deleteSectionsError) throw deleteSectionsError;
 
-    if (sanitizedData.sections && sanitizedData.sections.length > 0) {
-      const sectionsToInsert = sanitizedData.sections.map((section) => ({
-        id: section.id,
+    if (deleteSectionsError) {
+      console.error('❌ Erro ao deletar sections antigas:', deleteSectionsError);
+      throw deleteSectionsError;
+    }
+    console.log('✅ Sections antigas deletadas');
+
+    if (data.sections && data.sections.length > 0) {
+      const sectionsToInsert = data.sections.map((section) => ({
+        id: section.id, // Manter o ID original da seção
         bakery_id: bakeryId,
         name: section.name,
         visible: section.visible !== false,
@@ -134,8 +128,12 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       const { error: sectionsError } = await supabase
         .from('sections')
         .insert(sectionsToInsert);
-      
-      if (sectionsError) throw sectionsError;
+
+      if (sectionsError) {
+        console.error('❌ Erro ao inserir sections:', sectionsError);
+        throw sectionsError;
+      }
+      console.log(`✅ ${sectionsToInsert.length} sections inseridas com IDs e vínculos mantidos`);
     }
 
     // 5. Deletar tags antigas e inserir novas
@@ -143,12 +141,16 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       .from('tags')
       .delete()
       .eq('bakery_id', bakeryId);
-    
-    if (deleteTagsError) throw deleteTagsError;
 
-    if (sanitizedData.tags && sanitizedData.tags.length > 0) {
-      const tagsToInsert = sanitizedData.tags.map((tag) => ({
-        id: tag.id,
+    if (deleteTagsError) {
+      console.error('❌ Erro ao deletar tags antigas:', deleteTagsError);
+      throw deleteTagsError;
+    }
+    console.log('✅ Tags antigas deletadas');
+
+    if (data.tags && data.tags.length > 0) {
+      const tagsToInsert = data.tags.map((tag) => ({
+        id: tag.id, // Manter o ID original para vínculo com produtos
         bakery_id: bakeryId,
         name: tag.name,
         color: tag.color,
@@ -158,14 +160,19 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
       const { error: tagsError } = await supabase
         .from('tags')
         .insert(tagsToInsert);
-      
-      if (tagsError) throw tagsError;
+
+      if (tagsError) {
+        console.error('❌ Erro ao inserir tags:', tagsError);
+        throw tagsError;
+      }
+      console.log(`✅ ${tagsToInsert.length} tags inseridas com IDs mantidos`);
     }
 
+    console.log('✅ Todos os dados salvos com sucesso no Supabase!');
     return true;
-  } catch (error: any) {
-    console.error('❌ Erro ao salvar no Supabase:', error);
-    throw error;
+  } catch (error) {
+    console.error('❌ Erro geral ao salvar no Supabase:', error);
+    return false;
   }
 }
 
