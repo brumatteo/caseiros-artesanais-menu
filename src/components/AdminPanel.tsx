@@ -36,6 +36,12 @@ export function AdminPanel({
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
   const handleSave = async () => {
+    // ✅ PREVENIR múltiplas chamadas simultâneas
+    if (isSaving) {
+      console.warn('⚠️ [DEBUG] handleSave já está em execução, ignorando nova chamada');
+      return;
+    }
+
     if (!bakeryId) {
       console.error('❌ Erro: bakeryId não fornecido');
       toast({
@@ -47,7 +53,11 @@ export function AdminPanel({
     }
 
     setIsSaving(true);
-    console.log('🔄 Iniciando salvamento...', { bakeryId, data });
+    console.log('🔄 [DEBUG] handleSave iniciado', { 
+      timestamp: new Date().toISOString(), 
+      bakeryId,
+      data
+    });
 
     // ✅ VERIFICAR IMEDIATAMENTE se há sessão ativa
     const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -129,9 +139,28 @@ export function AdminPanel({
       }
     
     console.log('✅ Token renovado, prosseguindo com salvamento...');
+    console.log('🔍 [DEBUG] Valores antes de chamar saveDataToSupabase:', {
+      bakeryId,
+      hasDataToSave: !!dataToSave,
+      settingsBrandName: dataToSave?.settings?.brandName,
+      productsCount: dataToSave?.products?.length || 0,
+      extrasCount: dataToSave?.extras?.length || 0,
+      sectionsCount: dataToSave?.sections?.length || 0,
+      tagsCount: dataToSave?.tags?.length || 0
+    });
     
     try {
-      await saveDataToSupabase(dataToSave, bakeryId);
+      console.log('🚀 [DEBUG] Chamando saveDataToSupabase com timeout de 25s...');
+      
+      // ✅ Promise.race para garantir que nunca trava indefinidamente
+      await Promise.race([
+        saveDataToSupabase(dataToSave, bakeryId),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('saveDataToSupabase travou por mais de 25 segundos')), 25000)
+        )
+      ]);
+      
+      console.log('✅ [DEBUG] saveDataToSupabase retornou com sucesso');
       
       // Verificar se timeout já disparou
       if (timeoutFired) {

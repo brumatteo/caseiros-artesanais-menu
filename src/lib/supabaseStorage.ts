@@ -24,10 +24,16 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     
     console.log('📝 Dados que serão atualizados na tabela bakeries:', updateData);
     
-    const { error: bakeryError } = await supabase
-      .from('bakeries')
-      .update(updateData)
-      .eq('id', bakeryId);
+    console.log('🔄 [SUPABASE] Executando UPDATE em bakeries com timeout de 10s...');
+    const { error: bakeryError } = await Promise.race([
+      supabase.from('bakeries').update(updateData).eq('id', bakeryId),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('UPDATE bakeries travou por mais de 10 segundos')), 10000)
+      )
+    ]) as { error: any };
+    console.log('✅ [SUPABASE] UPDATE em bakeries concluído', { 
+      bakeryError: bakeryError?.message || 'sem erro' 
+    });
 
     if (bakeryError) {
       console.error('❌ Erro ao atualizar bakery:', bakeryError);
@@ -44,10 +50,16 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     // 2. Deletar produtos antigos e inserir novos
     console.log('🔄 Deletando produtos antigos...');
     try {
-      const { error: deleteProductsError } = await supabase
-        .from('products')
-        .delete()
-        .eq('bakery_id', bakeryId);
+      console.log('🔄 [SUPABASE] Executando DELETE em products com timeout de 10s...');
+      const { error: deleteProductsError } = await Promise.race([
+        supabase.from('products').delete().eq('bakery_id', bakeryId),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('DELETE products travou por mais de 10 segundos')), 10000)
+        )
+      ]) as { error: any };
+      console.log('✅ [SUPABASE] DELETE em products concluído', { 
+        deleteProductsError: deleteProductsError?.message || 'sem erro' 
+      });
 
       if (deleteProductsError) throw deleteProductsError;
       console.log('✅ Produtos antigos deletados');
@@ -72,9 +84,16 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
           product_order: product.order || 0,
         }));
 
-        const { error: productsError } = await supabase
-          .from('products')
-          .insert(productsToInsert);
+        console.log('🔄 [SUPABASE] Executando INSERT em products com timeout de 10s...');
+        const { error: productsError } = await Promise.race([
+          supabase.from('products').insert(productsToInsert),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('INSERT products travou por mais de 10 segundos')), 10000)
+          )
+        ]) as { error: any };
+        console.log('✅ [SUPABASE] INSERT em products concluído', { 
+          productsError: productsError?.message || 'sem erro' 
+        });
 
         if (productsError) throw productsError;
         console.log(`✅ ${productsToInsert.length} produtos inseridos com IDs mantidos`);
@@ -87,10 +106,14 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     // 3. Deletar extras antigos e inserir novos
     console.log('🔄 Deletando extras antigos...');
     try {
+      console.log('🔄 [SUPABASE] Executando DELETE em extras...');
       const { error: deleteExtrasError } = await supabase
         .from('extras')
         .delete()
         .eq('bakery_id', bakeryId);
+      console.log('✅ [SUPABASE] DELETE em extras concluído', { 
+        deleteExtrasError: deleteExtrasError?.message || 'sem erro' 
+      });
 
       if (deleteExtrasError) throw deleteExtrasError;
       console.log('✅ Extras antigos deletados');
@@ -111,9 +134,13 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
           extra_order: extra.order || 0,
         }));
 
+        console.log('🔄 [SUPABASE] Executando INSERT em extras...');
         const { error: extrasError } = await supabase
           .from('extras')
           .insert(extrasToInsert);
+        console.log('✅ [SUPABASE] INSERT em extras concluído', { 
+          extrasError: extrasError?.message || 'sem erro' 
+        });
 
         if (extrasError) throw extrasError;
         console.log(`✅ ${extrasToInsert.length} extras inseridos`);
@@ -126,10 +153,14 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     // 4. Deletar sections antigas e inserir novas
     console.log('🔄 Deletando sections antigas...');
     try {
+      console.log('🔄 [SUPABASE] Executando DELETE em sections...');
       const { error: deleteSectionsError } = await supabase
         .from('sections')
         .delete()
         .eq('bakery_id', bakeryId);
+      console.log('✅ [SUPABASE] DELETE em sections concluído', { 
+        deleteSectionsError: deleteSectionsError?.message || 'sem erro' 
+      });
 
       if (deleteSectionsError) throw deleteSectionsError;
       console.log('✅ Sections antigas deletadas');
@@ -150,9 +181,13 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
           product_ids: section.productIds || [],
         }));
 
+        console.log('🔄 [SUPABASE] Executando INSERT em sections...');
         const { error: sectionsError } = await supabase
           .from('sections')
           .insert(sectionsToInsert);
+        console.log('✅ [SUPABASE] INSERT em sections concluído', { 
+          sectionsError: sectionsError?.message || 'sem erro' 
+        });
 
         if (sectionsError) throw sectionsError;
         console.log(`✅ ${sectionsToInsert.length} sections inseridas com IDs e vínculos mantidos`);
@@ -165,10 +200,14 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
     // 5. Deletar tags antigas e inserir novas
     console.log('🔄 Deletando tags antigas...');
     try {
+      console.log('🔄 [SUPABASE] Executando DELETE em tags...');
       const { error: deleteTagsError } = await supabase
         .from('tags')
         .delete()
         .eq('bakery_id', bakeryId);
+      console.log('✅ [SUPABASE] DELETE em tags concluído', { 
+        deleteTagsError: deleteTagsError?.message || 'sem erro' 
+      });
 
       if (deleteTagsError) throw deleteTagsError;
       console.log('✅ Tags antigas deletadas');
@@ -188,9 +227,13 @@ export async function saveDataToSupabase(data: AppData, bakeryId: string): Promi
           emoji: tag.emoji,
         }));
 
+        console.log('🔄 [SUPABASE] Executando INSERT em tags...');
         const { error: tagsError } = await supabase
           .from('tags')
           .insert(tagsToInsert);
+        console.log('✅ [SUPABASE] INSERT em tags concluído', { 
+          tagsError: tagsError?.message || 'sem erro' 
+        });
 
         if (tagsError) throw tagsError;
         console.log(`✅ ${tagsToInsert.length} tags inseridas com IDs mantidos`);
