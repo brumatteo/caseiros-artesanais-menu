@@ -36,224 +36,97 @@ export function AdminPanel({
   const [activeTab, setActiveTab] = useState('branding');
   const [isSaving, setIsSaving] = useState(false);
   const handleSave = async () => {
-    // ✅ PREVENIR múltiplas chamadas simultâneas
-    if (isSaving) {
-      console.warn('⚠️ [DEBUG] handleSave já está em execução, ignorando nova chamada');
-      return;
-    }
+    if (isSaving) return;
 
-    if (!bakeryId) {
-      console.error('❌ Erro: bakeryId não fornecido');
+    try {
+      setIsSaving(true);
+
+      if (!bakeryId) {
+        toast({
+          title: "Erro",
+          description: "ID da confeitaria não encontrado",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Verificar sessão
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast({
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente",
+          variant: "destructive"
+        });
+        onLogout();
+        return;
+      }
+
+      // Comprimir imagens
+      const dataToSave = { ...data };
+      
+      if (dataToSave.settings?.logoImage?.startsWith('data:image')) {
+        dataToSave.settings.logoImage = await compressBase64Image(dataToSave.settings.logoImage, 400);
+      }
+      if (dataToSave.settings?.heroImage?.startsWith('data:image')) {
+        dataToSave.settings.heroImage = await compressBase64Image(dataToSave.settings.heroImage, 1200);
+      }
+
+      for (const product of dataToSave.products || []) {
+        if (product.image?.startsWith('data:image')) {
+          product.image = await compressBase64Image(product.image, 600);
+        }
+      }
+
+      for (const extra of dataToSave.extras || []) {
+        if (extra.image?.startsWith('data:image')) {
+          extra.image = await compressBase64Image(extra.image, 600);
+        }
+      }
+
+      // Refresh do token
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError || !refreshData.session) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Sua sessão expirou. Por favor, faça login novamente.",
+          variant: "destructive"
+        });
+        onLogout();
+        return;
+      }
+
+      // Salvar dados
+      const success = await saveDataToSupabase(dataToSave, bakeryId);
+
+      if (success) {
+        toast({
+          title: "Sucesso!",
+          description: "Alterações salvas com sucesso",
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar:', error);
+      
+      if (error?.message?.includes('JWT') || error?.message?.includes('sessão') || error?.message?.includes('Session')) {
+        toast({
+          title: "Sessão expirada",
+          description: "Por favor, faça login novamente",
+          variant: "destructive"
+        });
+        onLogout();
+        return;
+      }
+
       toast({
         title: "Erro ao salvar",
-        description: "ID da confeitaria não encontrado.",
+        description: error.message || "Ocorreu um erro ao salvar os dados",
         variant: "destructive"
       });
-      return;
-    }
-
-    setIsSaving(true);
-    console.log('🔄 [DEBUG] handleSave iniciado', { 
-      timestamp: new Date().toISOString(), 
-      bakeryId,
-      data
-    });
-
-    // ✅ VERIFICAR IMEDIATAMENTE se há sessão ativa
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-    if (!currentSession) {
-      console.error('❌ Nenhuma sessão ativa detectada');
-      setIsSaving(false);
-      toast({
-        title: "Sessão inválida",
-        description: "Você precisa estar logado para salvar. Faça login novamente.",
-        variant: "destructive"
-      });
-      
-      setTimeout(() => {
-        onLogout();
-      }, 2000);
-      return;
-    }
-
-    console.log('✅ Sessão ativa confirmada, prosseguindo...');
-    
-    // Flag para controlar se o timeout foi disparado
-    let timeoutFired = false;
-    
-    // Timeout de segurança: 30s para dar tempo de processar imagens grandes
-    const saveTimeout = setTimeout(() => {
-      if (!timeoutFired) {
-        timeoutFired = true;
-        console.error('⏱️ Timeout: salvamento excedeu 30 segundos');
-        setIsSaving(false);
-        toast({
-          title: "Tempo esgotado",
-          description: "O salvamento demorou muito. Sua sessão pode ter expirado. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    }, 30000); // 30 segundos
-    
-    try {
-      // Comprimir imagens antes de salvar para evitar timeout
-      const dataToSave = { ...data };
-      if (dataToSave.settings.logoImage?.startsWith('data:image')) {
-        console.log('🖼️ Comprimindo logo...');
-        try {
-          dataToSave.settings.logoImage = await compressBase64Image(dataToSave.settings.logoImage, 400);
-          console.log('✅ Logo comprimida');
-        } catch (err) {
-          console.warn('⚠️ Não foi possível comprimir logo:', err);
-        }
-      }
-      if (dataToSave.settings.heroImage?.startsWith('data:image')) {
-        console.log('🖼️ Comprimindo hero image...');
-        try {
-          dataToSave.settings.heroImage = await compressBase64Image(dataToSave.settings.heroImage, 1200);
-          console.log('✅ Hero image comprimida');
-        } catch (err) {
-          console.warn('⚠️ Não foi possível comprimir hero image:', err);
-        }
-      }
-      
-      // FORÇAR refresh do token antes de salvar
-      console.log('🔄 Forçando refresh do token antes de salvar...');
-      const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError || !session) {
-        console.error('❌ Erro ao refresh do token:', refreshError);
-        clearTimeout(saveTimeout);
-        setIsSaving(false);
-        toast({
-          title: "Sessão expirada",
-          description: "Sua sessão expirou. Por favor, faça login novamente.",
-          variant: "destructive"
-        });
-        
-        setTimeout(() => {
-          onLogout();
-        }, 2000);
-        return;
-      }
-    
-    console.log('✅ Token renovado, prosseguindo com salvamento...');
-    console.log('🔍 [DEBUG] Valores antes de chamar saveDataToSupabase:', {
-      bakeryId,
-      hasDataToSave: !!dataToSave,
-      settingsBrandName: dataToSave?.settings?.brandName,
-      productsCount: dataToSave?.products?.length || 0,
-      extrasCount: dataToSave?.extras?.length || 0,
-      sectionsCount: dataToSave?.sections?.length || 0,
-      tagsCount: dataToSave?.tags?.length || 0
-    });
-    
-    try {
-      console.log('🚀 [DEBUG] Chamando saveDataToSupabase com timeout de 25s...');
-      
-      // ✅ Promise.race para garantir que nunca trava indefinidamente
-      await Promise.race([
-        saveDataToSupabase(dataToSave, bakeryId),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('saveDataToSupabase travou por mais de 25 segundos')), 25000)
-        )
-      ]);
-      
-      console.log('✅ [DEBUG] saveDataToSupabase retornou com sucesso');
-      
-      // Verificar se timeout já disparou
-      if (timeoutFired) {
-        console.log('⚠️ Timeout já disparou, ignorando resultado do salvamento');
-        return;
-      }
-      
-      clearTimeout(saveTimeout);
-      
-      // Se chegou aqui, salvou com sucesso
-      console.log('✅ Salvamento concluído com sucesso!');
-      toast({
-        title: "Salvo com sucesso!",
-        description: "Suas alterações foram salvas no banco de dados."
-      });
-      setIsSaving(false);
-    } catch (saveError: any) {
-      // Verificar se timeout já disparou
-      if (timeoutFired) {
-        console.log('⚠️ Timeout já disparou, ignorando erro do salvamento');
-        return;
-      }
-      
-      clearTimeout(saveTimeout);
-      
-      console.error('❌ Erro durante o salvamento:', saveError);
-      
-      // Verificar se é erro de sessão
-      const isSessionError = saveError?.message?.includes('Sessão expirada') ||
-                            saveError?.message?.includes('JWT') ||
-                            saveError?.code === 'PGRST301';
-      
-      if (isSessionError) {
-        toast({
-          title: "Sessão expirada",
-          description: "Sua sessão expirou. Por favor, faça login novamente.",
-          variant: "destructive"
-        });
-        
-        setTimeout(() => {
-          onLogout();
-        }, 2000);
-      } else {
-        // Erro de rede ou banco de dados
-        toast({
-          title: "Erro ao salvar",
-          description: saveError?.message || "Não foi possível salvar as alterações. Verifique sua conexão.",
-          variant: "destructive"
-        });
-      }
-      
-      setIsSaving(false);
-    }
-    } catch (error: any) {
-      // Verificar se timeout já disparou
-      if (timeoutFired) {
-        console.log('⚠️ Timeout já disparou, ignorando erro externo');
-        return;
-      }
-      
-      clearTimeout(saveTimeout);
-      console.error('❌ Erro ao processar salvamento:', error);
-      
-      // Detectar erros de autenticação durante refresh
-      const isAuthError = error?.message?.includes('JWT') || 
-                         error?.message?.includes('session') ||
-                         error?.code === 'PGRST301';
-      
-      if (isAuthError) {
-        toast({
-          title: "Sessão expirada",
-          description: "Sua sessão expirou. Faça login novamente.",
-          variant: "destructive"
-        });
-        
-        setTimeout(() => {
-          onLogout();
-        }, 2000);
-      } else {
-        toast({
-          title: "Erro ao salvar",
-          description: error?.message || "Ocorreu um erro inesperado. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-      
-      setIsSaving(false);
     } finally {
-      // ✅ GARANTIA FINAL: Se por algum motivo o botão ainda está travado, destravar
-      if (isSaving && !timeoutFired) {
-        console.warn('⚠️ Finally: Desbloqueando botão como última garantia');
-        setIsSaving(false);
-      }
+      setIsSaving(false);
     }
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
@@ -308,10 +181,7 @@ export function AdminPanel({
         <div className="flex flex-wrap gap-3 border-t pt-4 mt-4">
           {userSlug && (
             <Button
-              onClick={() => {
-                const url = `/${userSlug}`;
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }}
+              onClick={() => window.open(`/${userSlug}`, '_blank')}
               variant="outline"
               className="flex-1 min-w-[150px]"
             >

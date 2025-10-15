@@ -18,6 +18,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Signup />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/:slug/admin" element={<Admin />} />
           <Route path="/:slug" element={<PublicView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
