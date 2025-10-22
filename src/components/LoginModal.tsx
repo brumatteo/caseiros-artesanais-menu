@@ -3,6 +3,8 @@ import { Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -14,6 +16,7 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +29,34 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
       // Don't call onClose() - let parent component handle modal state
     } else {
       setError('Usuário ou senha incorretos');
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!username) {
+      toast({
+        title: "Digite seu e-mail",
+        description: "Por favor, digite seu e-mail no campo acima para recuperar sua senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(username, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      toast({
+        title: "Erro ao enviar e-mail",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "E-mail enviado!",
+        description: "Enviamos um link de redefinição para o seu e-mail.",
+      });
     }
   };
 
@@ -76,6 +107,14 @@ export function LoginModal({ isOpen, onClose, onLogin }: LoginModalProps) {
           <Button type="submit" className="w-full">
             Entrar
           </Button>
+
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-sm text-primary hover:underline text-center w-full"
+          >
+            Esqueci minha senha
+          </button>
         </form>
       </DialogContent>
     </Dialog>
