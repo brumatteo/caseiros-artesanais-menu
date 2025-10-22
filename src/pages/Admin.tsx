@@ -229,6 +229,34 @@ const Admin = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Digite seu e-mail",
+        description: "Por favor, digite seu e-mail no campo acima para recuperar sua senha.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      toast({
+        title: "Erro ao enviar e-mail",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "E-mail enviado!",
+        description: "Enviamos um link de redefinição para o seu e-mail.",
+      });
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
@@ -311,11 +339,21 @@ const Admin = () => {
               )}
             </Button>
 
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-sm text-primary hover:underline text-center w-full"
+              disabled={isLoading}
+            >
+              Esqueci minha senha
+            </button>
+
             <div className="text-center">
               <button
                 type="button"
                 onClick={() => navigate('/')}
                 className="text-sm text-primary hover:underline"
+                disabled={isLoading}
               >
                 Criar uma conta
               </button>
